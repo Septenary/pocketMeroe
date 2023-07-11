@@ -13,6 +13,12 @@ local default_config = {
             ctrl = false,
             shift = true,
         },
+        clear_modifier = {
+            none = false,
+            alt = true,
+            ctrl = false,
+            shift = false,
+        },
     },
 }
 
@@ -42,6 +48,17 @@ function pocketMeroe:OnInit(event, name)
 		pocketMeroe.db:SetProfile("Default")
 	end
     pocketMeroe.db.RegisterCallback(pocketMeroe, "OnProfileChanged", "RefreshConfig")
+    pocketMeroe:initMarks()
+    local markevents = CreateFrame("frame");
+    markevents:RegisterEvent("PLAYER_REGEN_ENABLED")
+    markevents:RegisterEvent("PLAYER_REGEN_DISABLED")
+    markevents:RegisterEvent("UNIT_COMBAT")
+    markevents:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+    markevents:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+    markevents:RegisterEvent("MODIFIER_STATE_CHANGED")
+    markevents:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+    markevents:RegisterEvent("READY_CHECK")
+    markevents:SetScript("OnEvent", pocketMeroe.eventsMarks);
     --pocketMeroe.db.RegisterCallback (pocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye") --more info at https://www.youtube.com/watch?v=GXFnT4YJLQo
 end
 ---------------------------------------------------------------------------------------------------
@@ -69,39 +86,49 @@ pocketMeroe.SetSetting = function(...)
     options_on_click(nil, nil, ...)
 end
 
-pocketMeroe.SetModifier = function(_, _, value, key)
-    pocketMeroe.db.profile.marking_modifier.none = false
-    pocketMeroe.db.profile.marking_modifier.alt = false
-    pocketMeroe.db.profile.marking_modifier.ctrl = false
-    pocketMeroe.db.profile.marking_modifier.shift = false
+pocketMeroe.SetModifier = function(_, var, value, key)
+    pocketMeroe.db.profile [var].none = false
+    pocketMeroe.db.profile [var].alt = false
+    pocketMeroe.db.profile [var].ctrl = false
+    pocketMeroe.db.profile [var].shift = false
 
-    pocketMeroe.db.profile.marking_modifier [key] = true
+    pocketMeroe.db.profile [var] [key] = value
 
 end
-
 
 function Config:Toggle()
     local menu = generalSettingsFrame or Config:CreateMenu();
     menu:SetShown(not menu:IsShown());
 end
 
-
-
-
-local BuildMarkingModifierOptions = function()
+local BuildModifierOptions = function(var)
     local result = {
+        {
+            label = "None",
+            value = "none",
+            onclick = function()
+                pocketMeroe.SetModifier(nil, var, true, "none")
+            end,
+        },
         {
             label = "Alt",
             value = "alt",
             onclick = function()
-                pocketMeroe.SetModifier(nil, nil, true, "alt")
+                pocketMeroe.SetModifier(nil, var, true, "alt")
+            end,
+        },
+        {
+            label = "Ctrl",
+            value = "ctrl",
+            onclick = function()
+                pocketMeroe.SetModifier(nil, var, true, "ctrl")
             end,
         },
         {
             label = "Shift",
             value = "shift",
             onclick = function()
-                pocketMeroe.SetModifier(nil, nil, true, "shift")
+                pocketMeroe.SetModifier(nil, var, true, "shift")
             end,
         },
     }
@@ -109,9 +136,9 @@ local BuildMarkingModifierOptions = function()
 end
 
 
+
 -- Settings
 local generalSettingsFrame;
-
 function Config:CreateMenu()
     generalSettingsFrame = DF:CreateSimplePanel (UIParent, 500, 288, "pocketMeroe Config", "pocketMeroeOptionsPanel")
     generalSettingsFrame:SetFrameStrata("HIGH")
@@ -171,11 +198,22 @@ function Config:CreateMenu()
                 type = "select",
                 get = function() 
                     local markingModifier = pocketMeroe.db.profile.marking_modifier
-                    return markingModifier.alt and "alt" or markingModifier.shift and "shift"
+                    return markingModifier.none and "none" or markingModifier.alt and "alt" or markingModifier.ctrl and "ctrl" or markingModifier.shift and "shift"
                 end,
-                values = function () return BuildMarkingModifierOptions() end,
+                values = function () return BuildModifierOptions("marking_modifier") end,
                 name = "Marking Modifier",
                 desc = "Require this modifier key to be held down for mouseover marking to work. ",
+                
+            },
+            {
+                type = "select",
+                get = function() 
+                    local clearModifier = pocketMeroe.db.profile.clear_modifier
+                    return clearModifier.none and "none" or clearModifier.alt and "alt" or clearModifier.ctrl and "ctrl" or clearModifier.shift and "shift"
+                end,
+                values = function () return BuildModifierOptions("clear_modifier") end,
+                name = "Clear Modifier",
+                desc = "Require this modifier key to be held down to clear existing marks. ",
                 
             },
             {type = "blank"},
@@ -197,16 +235,159 @@ function Config:CreateMenu()
 
     end
 
-
-
-
-    --UIConfig.optModifier = DF:CreateSimpleListBox (UIConfig, optModifier, "Mouseover Modifier", "None", {"None", "Alt", "Ctrl", "Shift"})
-    --local optLeader = DF:CreateOptionsButton(menu, nil, "pocketMeroeOptLeader")
-    --optLeader:SetPoint("bottomleft", UIConfig, "bottomleft")
-
-
-
     generalSettingsFrame:Hide();
     return generalSettingsFrame;
 end
 
+function pocketMeroe:initMarks()
+    pocketMeroe.Marks = {}
+    _G["env"] = pocketMeroe.Marks
+    env.orderList = {
+        ["defaultOrder"] = {8,7,6,5,4,3,2,1},
+    }
+    env.mobList = {
+        -- Stockades Test
+        ["1706"] = true and "banish", -- Defias Prisoner
+        ["1707"] = true and "banish", -- Defias Captive
+        -- BRD --
+        ["8894"] = true and "polymorph", -- Anvilrage Medic
+        ["8895"] = true and "kill", -- Anvilrage Officer
+        ["8909"] = true and "kill", -- Fireguard
+    }        
+        --DO NOT TOUCH
+    env.marks = {}
+    env.assigned = {}
+
+
+    env.getOrder = function(unitId, isNameplate) 
+        local orderName
+        if (isNameplate) then
+            orderName = env.mobListNameplate[unitId]
+        else        
+            orderName = env.mobList[unitId]
+        end
+        return  env.orderList[orderName] or env.orderList["defaultOrder"]
+    end
+
+    --checks marks on players in party. DOES NOT empty the list of marked mobs or marks in use
+    -- env.checkPremarkedPlayers = function ()
+    --     for unit in WA_IterateGroupMembers() do
+    --         if GetRaidTargetIndex(unit) then
+    --             env.assigned[GetRaidTargetIndex(unit)] = true
+    --             env.marks[unit] = GetRaidTargetIndex(unit)
+    --         end
+    --     end
+    -- end
+
+
+    --checks nameplates on screen and adds them to the tracked list if not already in it. DOES NOT empty the list of marked mobs or marks in use
+    env.checkPremarkedMobs = function ()
+        for i = 1,40 do
+            local unit = "nameplate"..i
+            if UnitExists(unit) and GetRaidTargetIndex(unit) and not UnitPlayerControlled(unit) then
+                env.assigned[GetRaidTargetIndex(unit)] = true
+                env.marks[UnitGUID(unit)] = GetRaidTargetIndex(unit) 
+            end
+        end
+    end
+
+    --checks if the unit should be marked
+    env.isUnitValid = function (unit)
+        if unit == "player" then return end
+        local guid = UnitGUID(unit)
+        if not guid then return end
+        local unitid = select(6, strsplit("-", guid))
+        
+        return UnitExists(unit) and not GetRaidTargetIndex(unit) and env.mobList[unitid] and not UnitIsDead(unit)
+    end
+
+    --special case for nameplate marking, but same as the function above. Should merge them in the future
+    env.isUnitValidNameplate = function (unit)
+        if unit == "player" then return end
+        local guid = UnitGUID(unit)
+        if not guid then return end
+        local unitid = select(6, strsplit("-", guid))
+        
+        return UnitExists(unit) and not GetRaidTargetIndex(unit) and not env.marks[guid] and env.mobListNameplate[unitid] and not UnitIsDead(unit)
+    end
+
+    --takes in a unit and the order to mark it with. function checks the marks in the order to find the first availible marker from that order
+    env.markUnit = function (unit, order)
+        local guid = UnitGUID(unit)
+        for i=1, #order do
+            if not env.assigned[order[i]] --and env.config.settingsGroup.enabledMarks[order[i]]
+            then
+                if env.marks[guid] then 
+                    SetRaidTarget(unit, env.marks[guid])
+                    return               
+                end            
+                env.marks[guid] = order[i]
+                env.assigned[order[i]] = true
+                SetRaidTarget(unit, order[i])
+                return
+            end
+        end
+    end
+end
+
+function pocketMeroe:eventsMarks (event, ...)
+    local markingModifier = pocketMeroe.db.profile.marking_modifier
+    local clearModifier = pocketMeroe.db.profile.clear_modifier
+
+    if (pocketMeroe.db.profile.require_leader and not UnitIsGroupLeader("player")) then return end 
+    -- doesn't do marking if not player lead and "not lead" is toggled in custom options
+
+    ---------------------------------------------------------------------------------------
+    if event == "PLAYER_REGEN_ENABLED" then
+        env.marks = {}
+        env.assigned = {}
+        env.checkPremarkedMobs()
+        --env.checkPremarkedPlayers()
+    end
+    if event == "PLAYER_REGEN_DISABLED" then
+        env.checkPremarkedMobs()
+        --env.checkPremarkedPlayers()
+    end
+    
+    ---------------------------------------------------------------------------------------
+
+    ---------------------------------------------------------------------------------------
+    --mouseover functionality
+    if (event == "UPDATE_MOUSEOVER_UNIT" or event == "MODIFIER_STATE_CHANGED") and pocketMeroe.db.profile.use_mouseover then
+        
+        if (clearModifier.alt and IsAltKeyDown()) or
+            (clearModifier.ctrl and IsControlKeyDown()) or
+            (clearModifier.shift and IsShiftKeyDown()) then
+
+            SetRaidTarget("mouseover", 0)
+        end
+        
+        if (markingModifier.alt and not IsAltKeyDown()) then return end
+        if (markingModifier.ctrl and not IsControlKeyDown()) then return end
+        if (markingModifier.shift and not IsShiftKeyDown()) then return end
+        local guid = UnitGUID("mouseover")
+        if not guid then return end
+        local unitid = select(6, strsplit("-", guid))
+        if not env.isUnitValid("mouseover") then return end
+        --env.checkPremarkedPlayers()
+        env.checkPremarkedMobs()
+        env.markUnit("mouseover", env.getOrder(unitid))
+    end
+    
+    ---------------------------------------------------------------------------------------
+    --Frees up marks when mobs die
+    if event == "COMBAT_LOG_EVENT_UNFILTERED" and (select(2,...) == "UNIT_DIED" or select(2,...) == "UNIT_DESTROYED") then
+        local guid = select(8,...)     
+        if guid and(env.marks[guid]) then
+            local type = select(1, strsplit("-", guid)) 
+            
+            if string.lower(type)~="player" then
+                env.assigned[env.marks[select(8,...)]] = false
+                env.marks[select(8,...)] = nil
+            end
+        end    
+    end
+end
+
+-- TODO: cooltip clears
+-- TODO: leaving or entering an instance fucks the configuation panel
