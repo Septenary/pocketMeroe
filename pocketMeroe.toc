@@ -1,8 +1,8 @@
 ## Interface: 100100
 ## Title: pocketMeroe
-## Notes: Auto-marking and more! 
+## Notes: Auto-marking and more!|n/meroe
 ## SavedVariables: pocketMeroeDB, pocketMeroeLogs
-## Version: pocketMeroe-v0.0-Classic
+## Version: pocketMeroe-v0.0.1-Classic
 
 #@no-lib-strip@
 libs\libs.xml

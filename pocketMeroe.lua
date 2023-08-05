@@ -113,28 +113,229 @@ local default_config = {
 
 local npcData = {};
 
-
+-- Stockades Test
 npcData['1706'] = {
     markerType = {"sheep"},
-    abilities = { 10, 35076 },
+    abilities = { 1769, 676 },
     extra = {
-        { icon = 38768, text = "sheep", description = "Description of Extra" }
+        { icon = 136071, text = "Sheep", description = "These disarm and kick." }
     }
 };
 npcData['1707'] = {
-    markerType = {"primary"},
-    abilities = { 10, 35076 },
+    markerType = {"focus"},
+    abilities = { 29306 },
     extra = {
-        { icon = 38768, text = "Defias Captive", description = "Found in the Stockade" }
+        { icon = 38768, text = "Defias Captive (Rogues)", description = "Found in the Stockade" }
     }
 };
 npcData['1708'] = {
     markerType = {"focus"},
-    abilities = { 10, 35076 },
+    abilities = { 1423 },
     extra = {
-        { icon = 38768, text = "Extra Info", description = "Description of Extra" }
+        { icon = 132349, text = "Defias Inmate (Warriors)", description = "Found in the Stockade" }
     }
 };
+
+-- ZG          --
+-- -- Trash    --
+npcData['14750'] = {
+    name = "Gurubashi Bat Rider",
+    markerType = {"focus"},
+    abilities = { 19641 },
+};
+npcData['11830'] = {
+    name = "Hakkari Priest",
+    markerType = {"focus"},
+    abilities = { 12039 },
+    extra = {
+        { icon = 132349, text = "AoE Fear", description = "Does an 8 second AoE Fear" }
+    }
+};
+npcData['11353'] = {
+    name = "Gurubashi Blood Drinker",
+    markerType = {"sheep"},
+    abilities = { 16608 },
+};
+-- Molten Core --
+-- -- Trash    --
+npcData['12076'] = {
+    name = "Lava Elemental",
+    markerType = {"banish"},
+    abilities = { 19641 },
+};
+npcData['12100'] = {
+    name = "Lava Reaver",
+    markerType = {"banish"},
+    abilities = { 20571 },
+};
+npcData['11659'] = {
+    name = "Molten Destroyer",
+    markerType = {"focus"},
+    abilities = { 19129 },
+};
+-- -- Bosses   --
+npcData['12119'] = {
+    name = "(Lucifron) Flamewaker Protector",
+    markerType = {"focus"},
+    abilities = { 12721 },
+};
+npcData['12099'] = {
+    name = "(Garr) Firesworn",
+    markerType = {"primary", "secondary"},
+    abilities = { 20483 },
+    extra = {
+        { icon = 135830, text = "Explodes on Death", description = "30yd Range" }
+    }
+};
+npcData['11672'] = {
+    name = "(Golemagg) Core Rager",
+    markerType = {"shackle"},
+    abilities = { 22570 },
+};
+npcData['11662'] = {
+    name = "(Sulfuron Harbinger) Flamewaker Priest",
+    markerType = {"secondary"},
+    abilities = { 19775 },
+};
+npcData['11663'] = {
+    name = "(Majordomo Executus) Flamewaker Healer",
+    markerType = {"secondary"},
+    abilities = { 20420, 21077 },
+};
+npcData['11664'] = {
+    name = "(Majordomo Executus / Gehennas) Flamewaker Elite",
+    markerType = {"primary"},
+    abilities = {},
+};
+
+-- Blackwing Lair --
+-- -- Trash       --
+npcData['12468'] = {
+    name = "Death Talon Hatcher",
+    markerType = {"primary, secondary"},
+    abilities = {},
+    extra = {
+        { icon = 135830, text = "High Priority!", description = "Rogues cannot do suppression room without these cleared." }
+    }
+};
+npcData['12458'] = {
+    name = "Blackwing Taskmaster",
+    markerType = {"secondary"},
+    abilities = { 17289, 22458},
+};
+npcData['12459'] = {
+    name = "Blackwing Warlock",
+    markerType = {"primary, secondary"},
+    abilities = { 22336, 19717, 22372},
+};
+npcData['12457'] = {
+    name = "Blackwing Spellbinder",
+    markerType = {"secondary"},
+    abilities = { 22275, 22274},
+};
+-- -- Vael Pack    --
+npcData['12467'] = {
+    name = "Death Talon Captain",
+    markerType = {"rt4"},
+    abilities = { 22440, 22436},
+};
+npcData['12463'] = {
+    name = "Death Talon Flamescale",
+    markerType = {"focus"},
+    abilities = { 29228},
+};
+npcData['12464'] = {
+    name = "Death Talon Seether",
+    markerType = {"rt7, rt6, rt5"},
+    abilities = { 23341, 21340},
+};
+npcData['12465'] = {
+    name = "Death Talon Wyrmkin",
+    markerType = {"shackle, rt2, rt1"},
+    abilities = { 13021, 11988},
+};
+
+-- -- Bosses      --
+npcData['12420'] = {
+    name = "(Razorgore) Blackwing Mage",
+    markerType = {"primary, secondary"},
+    abilities = { 22271, 17290},
+};
+
+
+--   AQ20    --
+-- -- Trash  --
+-- -- Bosses --
+npcData['15514'] = {
+    name = "(Buru) Buru Egg",
+    markerType = {"primary, secondary"},
+    abilities = { 19593 },
+};
+npcData['15391'] = {
+    name = "(General Rajaxx) Captian Qeez",
+    markerType = {"secondary"},
+    abilities = { 19134 },
+    extra = {
+        { icon = 132154, text = "AOE fear", description = "Captain Qeez has a low-range  Intimidating Shout AOE fear. Ranged DPS and healers should stay away from Qeez while melee need to be careful about the fear." }
+    }
+};
+npcData['15392'] = {
+    name = "(General Rajaxx) Captian Tuubid",
+    markerType = {"secondary"},
+    abilities = { 25471 },
+    extra = {
+        { icon = 132212, text = "Attack Order", description = "Captain Tuubid has  Attack Order, a focus attack ability that sends all mobs in the wave to attack the marked target. CCs are really important in this wave, and must be kept up at all costs while Tuubid is alive." }
+    }
+};
+npcData['15389'] = {
+    name = "(General Rajaxx) Captian Drenn",
+    markerType = {"secondary"},
+    abilities = { 27530 },
+    extra = {
+        { icon = 136018, text = "Hurricane", description = "One of the more particularly challenging waves, Captain Drenn has a  Hurricane that he casts in the area around him. This can be especially dangerous if Andorov is caught in the Hurricane - If this happens, the tanks need to get threat from Drenn and move him away from the Hurricanes so Andorov follows him and gets moved safely out of the AOE." }
+    }
+};
+npcData['15390'] = {
+    name = "(General Rajaxx) Captian Xurrem",
+    markerType = {"secondary"},
+    abilities = { 25425 },
+    extra = {
+        { icon = 136105, text = "Shockwave", description = "Captain Xurrem has an AOE  Shockwave ability that deals significant damage around him. Melee need to be especially careful with this wave, and it might be a good idea to move the melee to kill the trash mobs in the wave while the ranged DPS take care of Xurrem." }
+    }
+};
+npcData['15386'] = {
+    name = "(General Rajaxx) Major Yeggeth",
+    markerType = {"primary"},
+    abilities = { 23415 },
+    extra = {
+        { icon = 135964, text = "Improved Blessing of Protection", description = "Major Yeggeth has an  Improved Blessing of Protection that he casts on himself, leaving him immune to Physical damage for 5 seconds. Ranged DPS needs to be careful with threat in this wave, as tanks have no way of generating threat during this. As the duration isn't very long, melee can just wait it out before attacking Yeggeth again." }
+    }
+};
+npcData['15388'] = {
+    name = "(General Rajaxx) Major Pakkon",
+    markerType = {"primary"},
+    abilities = { 25322 },
+    extra = {
+        { icon = 132111, text = "Sweeping Slam", description = "Major Pakkon has a  Sweeping Slam ability that deals significant damage and knocks back enemies in front of him. However, this is easily dealt with - Tank Pakkon against a wall to minimize the knockback, while melee stands behind him to avoid it completely." }
+    }
+};
+npcData['15385'] = {
+    name = "(General Rajaxx) Colonel Zerran",
+    markerType = {"primary"},
+    abilities = { 136101 },
+    extra = {
+        { icon = 136101, text = "Enlarge", description = "Colonel Zerran has an  Enlarge that he can cast on both himself and the adds on his wave that increase Physical damage done. This enlarge is dispensable by offensive magic dispells and simply needs to be dispelled as it happens." }
+    }
+};
+npcData['15341'] = {
+    name = "(General Rajaxx) General Rajaxx",
+    markerType = {"rt8"},
+    abilities = { 25599 },
+    extra = {
+        { icon = 136105, text = "Thundercrash", description = "Rajaxx's most dangerous ability is  Thundercrash, a zone-wide AOE knockback that he uses very often. This knockback deals half of the raid's current health (minimum of 100 damage) in damage and wipes all aggro from everyone when it happens." }
+    }
+};
+
 
 -- TODO: cooltip clears
 -- TODO: leaving or entering an instance fucks the configuation panel
@@ -188,11 +389,24 @@ function pocketMeroe:RefreshConfig()
 end
 
 local options_on_click = function(_, _, option, value, value2, mouseButton)
-    if (option == "use_mouseover") then
+    -- helpers.markersCustom = { 
+    --     "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
+    --     "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
+    -- }
+    if option == "use_mouseover" then
         pocketMeroe.db.profile.use_mouseover = not pocketMeroe.db.profile.use_mouseover
+        return
     end
-    if (option == "require_leader") then
+    if option == "require_leader" then
         pocketMeroe.db.profile.require_leader = not pocketMeroe.db.profile.require_leader
+        return
+    end
+    for i, mark in pairs(pocketMeroe.db.profile.raidMarkers) do
+        if option == i then
+            --print(option, value)
+            mark[value] = not mark[value]
+            return
+        end
     end
 end
 
@@ -211,7 +425,7 @@ pocketMeroe.SetModifier = function(_, var, value, key)
 end
 
 function Config:Toggle()
-    local menu = generalSettingsFrame or Config:CreateMenu();
+    local menu = optionsFrame or Config:CreateMenu();
     menu:SetShown(not menu:IsShown());
 end
 
@@ -252,19 +466,134 @@ end
 
 
 -- Settings
-local generalSettingsFrame;
 function Config:CreateMenu()
-    generalSettingsFrame = DF:CreateSimplePanel (UIParent, 500, 288, "pocketMeroe Config", "pocketMeroeOptionsPanel")
-    generalSettingsFrame:SetFrameStrata("HIGH")
-	DF:ApplyStandardBackdrop(generalSettingsFrame)
-    generalSettingsFrame:ClearAllPoints()
+    -- toggle configuration menu
+    if (pocketMeroeOptionsPanel) then
+        pocketMeroeOptionsPanel:Show()
+        return
+    end
+    -- create options frame
+    optionsFrame = DF:CreateSimplePanel (UIParent, 560, 300, "pocketMeroe Config", "pocketMeroeOptionsPanel")
+    optionsFrame:SetFrameStrata("HIGH")
+	DF:ApplyStandardBackdrop(optionsFrame)
+    optionsFrame:ClearAllPoints()
+	PixelUtil.SetPoint(optionsFrame, "center", UIParent, "center", 2, 2, 1, 1)
 
-    --- Content
-    -- mouseover marking
-    -- modifier
-    -- require leader
+    --create the footer below the options frame
+    local statusBar = CreateFrame("frame", "$parentStatusBar", optionsFrame, "BackdropTemplate")
+    statusBar:SetPoint("bottomleft", optionsFrame, "bottomleft")
+    statusBar:SetPoint("bottomright", optionsFrame, "bottomright")
+    statusBar:SetHeight(20)
+    statusBar:SetAlpha(0.9)
+    statusBar:SetFrameLevel(optionsFrame:GetFrameLevel()+2)
+    DF:ApplyStandardBackdrop(statusBar)
+    DF:BuildStatusbarAuthorInfo(statusBar, " For <Muted>, ", "Meroe")
+    
+    local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
+	bottomGradient:SetPoint("bottom-top", statusBar)
 
-    --- Templates
+
+    local frameOptions = {
+		y_offset = 4,
+		button_width = 108,
+		button_height = 23,
+		button_x = 190,
+		button_y = -8,
+		button_text_size = 10,
+		right_click_y = 5,
+		rightbutton_always_close = true,
+		close_text_alpha = 0.4,
+		container_width_offset = 30,
+	}
+    local selectedTabIndicatorDefaultColor = {.4, .4, .4}
+    local selectedTabIndicatorColor = {1, 1, 0}
+
+	local hookList = {
+		OnSelectIndex = function(tabContainer, tabButton)
+			if (not tabButton.leftSelectionIndicator) then
+				return
+			end
+
+			for i = 1, #tabContainer.AllFrames do
+                local thisTabButton = tabContainer.AllButtons[i]
+				thisTabButton.leftSelectionIndicator:SetColorTexture(unpack(selectedTabIndicatorDefaultColor))
+			end
+
+			tabButton.leftSelectionIndicator:SetColorTexture(unpack(selectedTabIndicatorColor))
+			tabButton.selectedUnderlineGlow:Hide()
+		end,
+	}
+    local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "pmOptions",
+	{
+		{name = "generalSettings",	text = "General"},
+		{name = "marksConfig",		text = "Enabled Marks"},
+		{name = "markingConfig",	text = "Assigned Marks"},
+	},  
+	frameOptions, hookList)
+
+    tabContainer:SetPoint("topleft", optionsFrame, "topleft", 5, 0)
+    tabContainer:Show()
+    tabContainer:SetSize(optionsFrame:GetSize())
+
+    --this function runs when any setting is changed
+	local profileCallback = function()
+
+	end
+    
+	--make the tab button's text be aligned to left and fit the button's area
+	for index, frame in ipairs(tabContainer.AllFrames) do
+		--DF:ApplyStandardBackdrop(frame)
+		local frameBackgroundTexture = frame:CreateTexture(nil, "artwork")
+		frameBackgroundTexture:SetPoint("topleft", frame, "topleft", -4, -64)
+		frameBackgroundTexture:SetPoint("bottomright", frame, "bottomright", -4, 20)
+		frameBackgroundTexture:SetColorTexture (0.2317647, 0.2317647, 0.2317647)
+		frameBackgroundTexture:SetVertexColor (0.27, 0.27, 0.27)
+		frameBackgroundTexture:SetAlpha (0.3)
+
+		frame.titleText.fontsize = 12
+
+		local tabButton = tabContainer.AllButtons[index]
+
+		local leftSelectionIndicator = tabButton:CreateTexture(nil, "overlay")
+
+		if (index == 1) then
+			leftSelectionIndicator:SetColorTexture(1, 1, 0)
+		else
+			leftSelectionIndicator:SetColorTexture(.4, .4, .4)
+		end
+		leftSelectionIndicator:SetPoint("left", tabButton.widget, "left", 2, 0)
+		leftSelectionIndicator:SetSize(4, tabButton:GetHeight()-4)
+		tabButton.leftSelectionIndicator = leftSelectionIndicator
+
+		local maxTextLength = tabButton:GetWidth() - 7
+
+		local fontString = _G[tabButton:GetName() .. "_Text"]
+		fontString:ClearAllPoints()
+		fontString:SetPoint("left", leftSelectionIndicator, "right", 2, 0)
+		fontString:SetJustifyH("left")
+		fontString:SetWidth(maxTextLength)
+		fontString:SetHeight(tabButton:GetHeight()+20)
+		fontString:SetWordWrap(true)
+		fontString:SetText(fontString:GetText())
+
+		local stringWidth = fontString:GetStringWidth()
+
+		--print(stringWidth, maxTextLength, fontString:GetText())
+
+		if (stringWidth > maxTextLength) then
+			local fontSize = DF:GetFontSize(fontString)
+			DF:SetFontSize(fontString, fontSize-0.5)
+		end
+	end
+
+
+
+    -- get each tab's frame and create a local variable to cache it
+    local generalSettingsFrame = tabContainer.AllFrames[1]
+    local marksConfigFrame = tabContainer.AllFrames[2]
+    local markingConfigFrame = tabContainer.AllFrames[3]
+
+    -- templates
     local options_text_template = DF:GetTemplate("font", "OPTIONS_FONT_TEMPLATE")
     local options_dropdown_template = DF:GetTemplate("dropdown", "OPTIONS_DROPDOWN_TEMPLATE")
     local options_switch_template = DF:GetTemplate("switch", "OPTIONS_CHECKBOX_TEMPLATE")
@@ -272,15 +601,11 @@ function Config:CreateMenu()
     local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
 
 
-    --this function runs when any setting is changed
-	local profileCallback = function()
 
-	end
-
-    --- do loop for General Settings
+    --- do loop for General settings
     do --do-do-do-do-do baby shark
         local optionsTable = {
-            --always_boxfirst = true,
+            always_boxfirst = true,
             {
                 type = "label",
                 get = function() return "Functionality" end,
@@ -331,56 +656,244 @@ function Config:CreateMenu()
                 
             },
             {type = "blank"},
+        }
+        DF:BuildMenu(generalSettingsFrame, optionsTable, 10, -70, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+
+    end
+
+    --- do loop for Marks setings
+    do --do-do-do-do-do baby shark
+        local markers = pocketMeroe.db.profile.raidMarkers
+        local checkboxHelper = function ()
+
+        end
+        local optionsTable = {
+            always_boxfirst = false,
             {
                 type = "label",
-                get = function() return "Enabled Marks" end,
+                get = function() return "   Focus" end,
                 text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[8]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 8)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[7]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 7)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[6]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 6)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[5]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 5)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[4]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 4)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[3]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 3)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[2]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 2)
+                end,
+                name = "    ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.focus[1]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("focus", 1)
+                end,
+                name = "    ",
             },
             {type = "blank"},
             {
                 type = "label",
-                get = function() return "CC Types" end,
+                get = function() return "Sheep" end,
                 text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
             },
-
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[8]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 8)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[7]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 7)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[6]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 6)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[5]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 5)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[4]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 4)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[3]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 3)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[2]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 2)
+                end,
+                name = " ",
+            },
+            {
+                type = "toggle",
+                get = function()
+                    return markers.sheep[1]
+                end,
+                set = function(self, fixedparam, value)
+                    pocketMeroe.SetSetting("sheep", 1)
+                end,
+                name = " ",
+            },
         }
+        
+        
+        
+        --local listBox = DF:CreateSimpleListBox("pocketMeroeOptionsPanel", "pocketMeroeListBox", "Marking","",npcData)
+        
+        
         --optionsTable.always_boxfirst = true
-        DF:BuildMenu(generalSettingsFrame, optionsTable, 10, -30, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+        DF:BuildMenu(marksConfigFrame, optionsTable, 10, -70, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+         
+        local skull = marksConfigFrame:CreateTexture(nil, "overlay")
+        skull:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_8]])
+        skull:SetPoint("right", pmOptionsmarksConfigWidget2, "left", -4, 0)
+        skull:SetWidth(20);skull:SetHeight(20)
 
+        local cross = marksConfigFrame:CreateTexture(nil, "overlay")
+        cross:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_7]])
+        cross:SetPoint("right", pmOptionsmarksConfigWidget3, "left", -4, 0)
+        cross:SetWidth(20);cross:SetHeight(20)
+
+        local square = marksConfigFrame:CreateTexture(nil, "overlay")
+        square:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_6]])
+        square:SetPoint("right", pmOptionsmarksConfigWidget4, "left", -4, 0)
+        square:SetWidth(20);square:SetHeight(20)
+
+        local moon = marksConfigFrame:CreateTexture(nil, "overlay")
+        moon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_5]])
+        moon:SetPoint("right", pmOptionsmarksConfigWidget5, "left", -4, 0)
+        moon:SetWidth(20);moon:SetHeight(20)
+
+        local triangle = marksConfigFrame:CreateTexture(nil, "overlay")
+        triangle:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_4]])
+        triangle:SetPoint("right", pmOptionsmarksConfigWidget6, "left", -4, 0)
+        triangle:SetWidth(20);triangle:SetHeight(20)
+
+        local diamond = marksConfigFrame:CreateTexture(nil, "overlay")
+        diamond:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_3]])
+        diamond:SetPoint("right", pmOptionsmarksConfigWidget7, "left", -4, 0)
+        diamond:SetWidth(20);diamond:SetHeight(20)
+
+        local circle = marksConfigFrame:CreateTexture(nil, "overlay")
+        circle:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_2]])
+        circle:SetPoint("right", pmOptionsmarksConfigWidget8, "left", -4, 0)
+        circle:SetWidth(20);circle:SetHeight(20)
+
+        local star = marksConfigFrame:CreateTexture(nil, "overlay")
+        star:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_1]])
+        star:SetPoint("right", pmOptionsmarksConfigWidget9, "left", -4, 0)
+        star:SetWidth(20);star:SetHeight(20)
     end
 
-    generalSettingsFrame:Hide();
-    return generalSettingsFrame;
+    optionsFrame:Hide();
+    return optionsFrame;
 end
-
-
-function pocketMeroe:stockades ()
-    -- local markingModifier = pocketMeroe.db.profile.marking_modifier
-    -- local clearModifier = pocketMeroe.db.profile.clear_modifier
-    --if (pocketMeroe.db.profile.require_leader and not UnitIsGroupLeader("player")) then return end 
-    -- doesn't do marking if not player lead and "not lead" is toggled in custom options
-
-    ---------------------------------------------------------------------------------------
-    
-    ---------------------------------------------------------------------------------------
-
-    --     if not pocketMeroe.db.profile.use_mouseover then
-
-    --     if (markingModifier.alt and IsAltKeyDown()) then
-    --         return true
-    --     elseif (markingModifier.ctrl and IsControlKeyDown()) then
-    --         return true
-    --     elseif (markingModifier.shift and IsShiftKeyDown()) then
-    --         return true
-    --     end
-    --     return false
-    -- end
-    -- .markersModifierChanged = function(aura)
-    --     if (markingModifier and pocketMeroe.db.profile.use_mouseover) then
-    return
-end
-
-
 
 function pocketMeroe:initTooltips ()
     _G["pocketMeroeHelpers"] = _G["pocketMeroeHelpers"] or {}
@@ -470,6 +983,10 @@ function pocketMeroe:initMarks ()
             return false
         end
         if not markingModifier then
+            return false
+        end
+        if (pocketMeroe.db.profile.require_leader and not UnitIsGroupLeader("player")) then
+            -- doesn't do marking if not player lead and "not lead" is toggled in custom options
             return false
         end
         if (markingModifier.alt and IsAltKeyDown()) then
@@ -736,7 +1253,6 @@ function pocketMeroe:initMarks ()
 
 
 end
-
 
 function pocketMeroe:eventsHandle (event)
     _G["pocketMeroeHelpers"] = _G["pocketMeroeHelpers"] or {}
