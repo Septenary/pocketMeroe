@@ -1,10 +1,32 @@
+------------------------------------------------------------------------------------------------------------------------
+--     
+--     pocketMeroe was made by meroe for <Muted> - Pagle and is licensed under GPLv2.
+-- 
+--     Author's note: Licensing is complicated. I used the Details!: Framework library (LGPL) for this addon.
+--     It can be found here: https://www.curseforge.com/wow/addons/libdframework and was made by Terciob,
+--     Details!: Framework is *also* complicated, so I used Terciob's WorldQuestTracker addon as a reference.
+--     WQT can be found here: https://www.curseforge.com/wow/addons/world-quest-tracker
+--     
+--     Please DO NOT ask questions about pocketMeroe in the Details! discord, they would be very confused.
+--     The Details! discord server will NOT answer questions or offer support, and their server link appears 
+--     in pocketMeroe due to my use of the Details!: Framework library. 
+--     Thank you to Terciob and their contributions to the WoW community!
+--     
+------------------------------------------------------------------------------------------------------------------------
 local _, pocketMeroe = ...; -- Namespace
 local version = "v0.0.2"
 pocketMeroe.Config = {};
 local Config = pocketMeroe.Config;
 aura_env = {};
 
+-- (Details!: Framework) get the framework table
+local DF = _G ["DetailsFramework"]
+-- if (not DF) then
+-- 	print ("|cFFFFAA00pocketMeroe: Details!: Framework not found, if you just installed or updated the addon, please restart your client.|r")
+-- 	return
+-- end  
 -- Ace3BasedConfigTable
+
 local default_config = {
     profile = {
         use_mouseover = true,
@@ -111,7 +133,7 @@ local default_config = {
     },
 };
 npcData = {};
-------------------------------------------------------------------------------------------------------------------------
+------ Mob Info --------------------------------------------------------------------------------------------------------
 do
     -- Stockades Test
     npcData['1706'] = {
@@ -372,15 +394,9 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 
 
+
 -- TODO: cooltip clears
-
--- (details framework) get the framework table
-local DF = _G ["DetailsFramework"]
--- if (not DF) then
--- 	print ("|cFFFFAA00pocketMeroe: framework not found, if you just installed or updated the addon, please restart your client.|r")
--- 	return
--- end  
-
+------ Init ------------------------------------------------------------------------------------------------------------
 function pocketMeroe:OnInit(event, name)
     if (name ~= "pocketMeroe") then return end --forgot why
     local function HandleSlashCommands(str)
@@ -409,17 +425,18 @@ function pocketMeroe:OnInit(event, name)
     --pocketMeroe.db.RegisterCallback (pocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye")
 end
 ------------------------------------------------------------------------------------------------------------------------
--- (details framework doesn't init automagically, we must do it ourselves?)
+-- (Details!: Framework doesn't init automagically, we must do it ourselves?)
 local events = CreateFrame("Frame");
 events:RegisterEvent("ADDON_LOADED");
 events:SetScript("OnEvent", pocketMeroe.OnInit);
--- (details framework) create the addon object
+-- (Details!: Framework) create the addon object
 pocketMeroe = DF:CreateAddOn ("pocketMeroe", "pocketMeroeDB", default_config)
 ------ Database Loads in here ------------------------------------------------------------------------------------------
 function pocketMeroe:RefreshConfig()
     --
 end
 
+------ Bits and pieces for UI ------------------------------------------------------------------------------------------
 local options_on_click = function(_, _, option, value, value2, mouseButton)
     -- helpers.markersCustom = { 
     --     "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
@@ -494,6 +511,7 @@ local BuildModifierOptions = function(var)
     }
     return result
 end
+
 local BuildRaidOptions = function(var)
     local result = {
         {
@@ -990,7 +1008,7 @@ function Config:CreateMenu()
                 markingScroll:CreateLine (createLine, i)
             end
 
-            --this build a list of quests and send it to the scroll
+            --this build a list of units and send it to the scroll
             function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
                 local data = {}
                 for id, _ in pairs (npcData) do
@@ -1005,7 +1023,6 @@ function Config:CreateMenu()
                         tinsert (data, {name, markerType})
                     -- idk, don't bully me.
                     elseif (not value or value=="none") then
-
                         local name = npcData[id].name or id
                         local markerType = npcData[id].markerType[1]
                         -- local abilities = npcData[id].abilities[1]
@@ -1028,6 +1045,10 @@ function Config:CreateMenu()
     optionsFrame:Hide();
     return optionsFrame;
 end
+------ Auto-Marking ----------------------------------------------------------------------------------------------------
+-- Huge credit to https://wago.io/p/Forsaken for most of the auto-marking code.
+-- The WeakAura I modified can be found here: https://wago.io/q1YbxB5Pz
+-- Even with my tweaks, full credit goes to Forsaken for their beautiful WeakAura.
 ------------------------------------------------------------------------------------------------------------------------
 function pocketMeroe:initTooltips ()
     _G["pocketMeroeHelpers"] = _G["pocketMeroeHelpers"] or {}
@@ -1116,7 +1137,7 @@ function pocketMeroe:initMarks ()
         "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
         "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
     }
-    -- Check if marking units is enabled
+    -- Check if marking (and unmarking) units is enabled
     helpers.markersEnabled = function(aura)
         if not pocketMeroe.db.profile.use_mouseover then
             return false
@@ -1128,18 +1149,18 @@ function pocketMeroe:initMarks ()
             -- doesn't do marking if not player lead and "not lead" is toggled in custom options
             return false
         end
-        if (markingModifier.alt and IsAltKeyDown()) then
-            return true
-        elseif (markingModifier.ctrl and IsControlKeyDown()) then
-            return true
-        elseif (markingModifier.shift and IsShiftKeyDown()) then
-            return true
-        end
         if (clearModifier.alt and IsAltKeyDown()) then
             return true
         elseif (clearModifier.ctrl and IsControlKeyDown()) then
             return true
         elseif (clearModifier.shift and IsShiftKeyDown()) then
+            return true
+        end
+        if (markingModifier.alt and IsAltKeyDown()) then
+            return true
+        elseif (markingModifier.ctrl and IsControlKeyDown()) then
+            return true
+        elseif (markingModifier.shift and IsShiftKeyDown()) then
             return true
         end
         return false
@@ -1155,7 +1176,7 @@ function pocketMeroe:initMarks ()
             elseif (helpers.markersModifierPressed) then
                 helpers.clearModifierIsPressed = false
             end
-            return
+            return -- Blocks a unit from repeatedly being marked and unmarked quickly.
         end
         if markingModifier and pocketMeroe.db.profile.use_mouseover then
             if (markingModifier.alt and IsAltKeyDown()) then
@@ -1170,10 +1191,10 @@ function pocketMeroe:initMarks ()
         end
 
     end
+    -- Pressed and Released introduce a delay for chain-marking mobs.
     helpers.markersModifierPressed = function(aura)
         if helpers.markersModifierIsPressed then
-            -- Was already pressed before
-            return
+            return -- Was already pressed before
         end
         helpers.markersModifierIsPressed = true
         helpers.markersClearUsed()
@@ -1181,8 +1202,7 @@ function pocketMeroe:initMarks ()
     end
     helpers.markersModifierReleased = function(aura)
         if not helpers.markersModifierIsPressed then
-            -- Was already released before
-            return
+            return -- Was already released before
         end
         helpers.markersModifierIsPressed = false
         helpers.markersUsedReset = GetTime()
@@ -1258,7 +1278,7 @@ function pocketMeroe:initMarks ()
             end
             return markerIndex
         end
-        -- Exact marker
+        -- Pre-defined exact markers, "rt1-8"
         local markerExact = strmatch(markerType, "rt([0-9]+)")
         if markerExact then
             local i = tonumber(markerExact)
@@ -1377,7 +1397,8 @@ function pocketMeroe:initMarks ()
         end
         return nil
     end
-    -- Set marker type for unit
+    -- markersSetUnit <- markersClearUnit <- markersClearIndex
+    -- Set marker type for unit 
     helpers.markersClearIndex = function(index)
         if index then
             helpers.markersUsed[index] = false
