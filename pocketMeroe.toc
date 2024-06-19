@@ -1,0 +1,11 @@
+## Interface: 100100
+## Title: pocketMeroe
+## Notes: Auto-marking and more!|n/meroe
+## SavedVariables: PocketMeroeDB, PocketMeroeLogs
+## Version: pocketMeroe-v0.0.2-Classic
+
+#@no-lib-strip@
+libs\libs.xml
+#@end-no-lib-strip@
+
+pocketMeroe.lua
