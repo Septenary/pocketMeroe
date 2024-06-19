@@ -41,192 +41,6 @@ local default_config = {
 		},
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
-		raidMarkers = {
-			focus = {
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				true,
-			},
-			focus2 = {
-				false, 
-				true, 
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false,
-			},
-			primary = {
-				true, 
-				true, 
-				true, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false,  
-			},
-			secondary = {
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				true, 
-				true,  
-				true, 
-			},
-			sheep = {
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				true, 
-				false, 
-				false,        
-			},
-			banish = {
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				true, 
-				false, 
-				false,      
-			},
-			shackle = {
-				false, 
-				false, 
-				true, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false,      
-			},
-			fear = {
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				true, 
-				false, 
-				false,
-			},
-			councilA = {
-				true, 
-				false, 
-				true, 
-				false, 
-				true, 
-				false, 
-				true, 
-				false,
-			},
-			councilB = {
-				false, 
-				true, 
-				false, 
-				true, 
-				false, 
-				true, 
-				false,
-				true,
-			}
-		-- some kind of regression, exact markers were missing...
---[[ 			rt1 = {
-				true, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false,
-			},
-			rt2 = {
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false,
-			},
-			rt3 = {
-				false, 
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false,
-			},
-			rt4 = {
-				false, 
-				false, 
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false,
-			},
-			rt5 = {
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				false, 
-				false, 
-				false,
-			},
-			rt6 = {
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				true, 
-				false, 
-				false,
-			},
-			rt7 = {
-				false, 
-				true, 
-				false, 
-				false, 
-				false, 
-				false, 
-				true, 
-				false,
-			},
-			rt8 = {
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				false, 
-				true,
-			}, ]]
-		},
-		raidMarkersCustom = {
-			
-		},
 	},
 };
 ------ Mob Info --------------------------------------------------------------------------------------------------------
@@ -618,7 +432,7 @@ local PocketMeroe_SetModifier = function(_, var, value, key)
 end
 
 function PocketMeroe_MenuToggle()
-	local menu = PocketMeroeOptionsPanel or PocketMeroe_CreateMenu();
+	local menu = meroeOptions or PocketMeroe_CreateMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 	end
@@ -716,8 +530,8 @@ end
 ------ Menu ------------------------------------------------------------------------------------------------------------
 function PocketMeroe_CreateMenu()
 	-- toggle configuration menu
-	if (pocketMeroeOptionsPanel) then
-		pocketMeroeOptionsPanel:Show()
+	if (meroeOptions) then
+		meroeOptions:Show()
 		return
 	end
 
@@ -736,8 +550,8 @@ function PocketMeroe_CreateMenu()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "pocketMeroeOptionsPanel")
-	--local pocketMeroeOptionsPanel = DF:NewPanel(UIParent, _, "pocketMeroeOptionsPanel", _, 897, 592)
+	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroeOptions")
+	--local meroeOptions = DF:NewPanel(UIParent, _, "meroeOptions", _, 897, 592)
 
 	optionsFrame.Frame = optionsFrame
 	optionsFrame.__name = "Options"
@@ -761,6 +575,7 @@ function PocketMeroe_CreateMenu()
 	DF:ApplyStandardBackdrop(statusBar)
 
 	local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
+	bottomGradient:SetAllPoints(optionsFrame, 1)
 	bottomGradient:SetPoint("bottom-top", statusBar)
 
 --[[ 	--divisor shown above the tab options area
@@ -779,15 +594,8 @@ function PocketMeroe_CreateMenu()
 	frameBackgroundTextureLeftLine:SetColorTexture(0.1215, 0.1176, 0.1294)
  ]]
 	local tabList = {
-		{name = "generalSettings",	text = "General"},
-		{name = "marksConfig",		text = "Enabled Marks"},
-		{name = "markingConfig",	text = "Assigned Marks"},
-		{name = "dpsConfig",	text = "DPS"},
-		{name = "tanksConfig",	    text = "Tanks"},
-		{name = "healersConfig",	text = "Healers"},
-		{name = "aConfig",	text = "aConfig"},
-		{name = "bConfig",	text = "bConfig"},
-		{name = "cConfig",	text = "cConfig"},
+		{name = ".settings",	text = "General"},
+		{name = ".markers",		text = "Enabled Marks"},
 	}
 	local optionsTable = {
 		y_offset = 0,
@@ -816,7 +624,7 @@ function PocketMeroe_CreateMenu()
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "pmOptions", tabList, optionsTable, hookList)
+	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "meroe", tabList, optionsTable, hookList)
 												
 	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
 	tabContainer:SetSize(optionsFrame:GetSize())
@@ -880,7 +688,6 @@ function PocketMeroe_CreateMenu()
 	-- get each tab's frame and create a local variable to cache it
 	local generalSettingsFrame = tabContainer.AllFrames[1]
 	local marksConfigFrame = tabContainer.AllFrames[2]
-	local markingConfigFrame = tabContainer.AllFrames[3]
 	local tabFrameHeight = generalSettingsFrame:GetHeight()
 	--- General settings
 	do
@@ -936,206 +743,20 @@ function PocketMeroe_CreateMenu()
 		DF:BuildMenu(generalSettingsFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
 
 	end
-	--- Marks setings
-	do
-		local markers = PocketMeroe.db.profile.raidMarkers
 
-		local optionsTable = {
-			always_boxfirst = false,
-			{
-				type = "label",
-				get = function() return "      Focus" end,
-				text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[8]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 8)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[7]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 7)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[6]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 6)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[5]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 5)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[4]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 4)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[3]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 3)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[2]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 2)
-				end,
-				name = "        ",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return markers.focus[1]
-				end,
-				set = function(self, fixedparam, value)
-					PocketMeroe_SetSetting("focus", 1)
-				end,
-				name = "        ",
-			},
-		}
-		
-		-- congratulations meroe, you've discovered a bad way to do this:
-		local checkboxHelper = function (markerLabel, markerType)
-			local b = {type = "blank"}
-			table.insert(optionsTable,b)
-			table.insert(optionsTable,{
-				type = "label",
-				get = function() return markerLabel end,
-				text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
-			})
-			for i=8, 1, -1 do
-				local a = {
-					type = "toggle",
-					get = function()
-						return markers[markerType][i]
-					end,
-					set = function(self, fixedparam, value)
-						PocketMeroe_SetSetting(markerType, i)
-					end,
-					name = "  ",
-				}
-				table.insert(optionsTable,a)
-			end
-		end
-		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
-		checkboxHelper("Focus2","focus2")
-		checkboxHelper("Primary","primary")
-		checkboxHelper("Secondary","secondary")
-		checkboxHelper(" Sheep","sheep")
-		checkboxHelper("Banish","banish")
-		checkboxHelper("Shackle","shackle")
-		checkboxHelper("  Fear","fear")
-
-
-
-
-		local function pocketMeroeIcon(parent,textureIcon,size,isButton)
-			local self = CreateFrame(isButton and "Button" or "Frame",nil,parent)
-			self:SetSize(size,size)
-			self.texture = self:CreateTexture(nil, "BACKGROUND")
-			self.texture:SetAllPoints()
-			self.texture:SetTexture(textureIcon or "Interface\\Icons\\INV_MISC_QUESTIONMARK")
-			if isButton then
-				self:EnableMouse(true)
-				self:RegisterForClicks("LeftButtonDown")
-			end
-		end
-
-		--optionsTable.always_boxfirst = true
-		-- see above comment about checkboxHelper being bad. third number = column HEIGHT.
-		DF:BuildMenu(marksConfigFrame, optionsTable, 10, -120, 400, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
-
-		local skull = marksConfigFrame:CreateTexture(nil, "overlay")
-		skull:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_8]])
-		skull:SetPoint("right", pmOptionsmarksConfigWidget2, "left", -8, 0)
-		skull:SetWidth(20);skull:SetHeight(20)
-
-		local cross = marksConfigFrame:CreateTexture(nil, "overlay")
-		cross:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_7]])
-		cross:SetPoint("right", pmOptionsmarksConfigWidget3, "left", -8, 0)
-		cross:SetWidth(20);cross:SetHeight(20)
-
-		local square = marksConfigFrame:CreateTexture(nil, "overlay")
-		square:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_6]])
-		square:SetPoint("right", pmOptionsmarksConfigWidget4, "left", -8, 0)
-		square:SetWidth(20);square:SetHeight(20)
-
-		local moon = marksConfigFrame:CreateTexture(nil, "overlay")
-		moon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_5]])
-		moon:SetPoint("right", pmOptionsmarksConfigWidget5, "left", -8, 0)
-		moon:SetWidth(20);moon:SetHeight(20)
-
-		local triangle = marksConfigFrame:CreateTexture(nil, "overlay")
-		triangle:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_4]])
-		triangle:SetPoint("right", pmOptionsmarksConfigWidget6, "left", -8, 0)
-		triangle:SetWidth(20);triangle:SetHeight(20)
-
-		local diamond = marksConfigFrame:CreateTexture(nil, "overlay")
-		diamond:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_3]])
-		diamond:SetPoint("right", pmOptionsmarksConfigWidget7, "left", -8, 0)
-		diamond:SetWidth(20);diamond:SetHeight(20)
-
-		local circle = marksConfigFrame:CreateTexture(nil, "overlay")
-		circle:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_2]])
-		circle:SetPoint("right", pmOptionsmarksConfigWidget8, "left", -8, 0)
-		circle:SetWidth(20);circle:SetHeight(20)
-
-		local star = marksConfigFrame:CreateTexture(nil, "overlay")
-		star:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcon_1]])
-		star:SetPoint("right", pmOptionsmarksConfigWidget9, "left", -8, 0)
-		star:SetWidth(20);star:SetHeight(20)
-	end
 	--- Marking setings
 	do
+		-- local markers = PocketMeroe.db.profile.raidMarkers
+
 		local optionsTable = {
 			always_boxfirst = false,
-			{
-				type = "label",
-				get = function() return "Raids" end,
-				text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
-			},
 			{
 				type = "select",
 				get = function() 
 					return "none" or "zg" or "aq20" or "mc" or "bwl"
 				end,
 				values = function () return BuildRaidOptions() end,
-				name = "Raid",
+				name = "Raid:",
 				--desc = "",
 
 			},
@@ -1153,7 +774,7 @@ function PocketMeroe_CreateMenu()
 		local backdrop_color = {.8, .8, .8, 0.2}
 		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
 
-		DF:BuildMenu(markingConfigFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+		DF:BuildMenu(marksConfigFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
 		local line_onenter = function (self)
 			self:SetBackdropColor (unpack (backdrop_color_on_enter))
 		end
@@ -1183,59 +804,59 @@ function PocketMeroe_CreateMenu()
 				end
 			end
 
-			-- who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
-			PocketMeroe.markingScroll = DF:CreateScrollBox (markingConfigFrame, "$parentmarkingScroll", markListRefresh, {}, config.scroll_width, config.scroll_height, config.scroll_lines, config.scroll_line_height)
+			--who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
+			PocketMeroe.markingScroll = DF:CreateScrollBox (marksConfigFrame, "$parentmarkingScroll", markListRefresh, {}, config.scroll_width, config.scroll_height, config.scroll_lines, config.scroll_line_height)
 			local markingScroll = PocketMeroe.markingScroll
 			DF:ReskinSlider (markingScroll)
-			markingScroll:SetPoint("TOPLEFT", markingConfigFrame, "TOPLEFT", 5, -140)
+			markingScroll:SetPoint("TOPLEFT", marksConfigFrame, "TOPLEFT", 5, -140)
 
 			--create the scroll widgets
-			local createLine = function(self, index)
-				local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
-				line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(config.scroll_line_height+1)) - 1)
-				line:SetSize(config.scroll_width - 2, config.scroll_line_height)
+			-- local createLine = function(self, index)
+			-- 	local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
+			-- 	line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(config.scroll_line_height+1)) - 1)
+			-- 	line:SetSize(config.scroll_width - 2, config.scroll_line_height)
 
-				line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-				line:SetBackdropColor(unpack (config.backdrop_color))
+			-- 	line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
+			-- 	line:SetBackdropColor(unpack (config.backdrop_color))
 
-				local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
-				local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
+			-- 	local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
+			-- 	local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
 
-				DF:SetFontSize (name, 10)
-				DF:SetFontSize (markerType, 10)
+			-- 	DF:SetFontSize (name, 10)
+			-- 	DF:SetFontSize (markerType, 10)
 
-				name:SetPoint("LEFT", line, "LEFT", 4, 0)
-				markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
+			-- 	name:SetPoint("LEFT", line, "LEFT", 4, 0)
+			-- 	markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
 
-				line.name = name
-				line.markerType = markerType
-				return line
-			end
+			-- 	line.name = name
+			-- 	line.markerType = markerType
+			-- 	return line
+			-- end
 
-			--create the scroll widgets
-			for i = 1, config.scroll_lines do
-				markingScroll:CreateLine (createLine, i)
-			end
+			-- --create the scroll widgets
+			-- for i = 1, config.scroll_lines do
+			-- 	markingScroll:CreateLine (createLine, i)
+			-- end
 
-			--this build a list of units and send it to the scroll
-			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
-				local data = {}
-				for id, _ in pairs (npcData) do
-					-- i really sure hope the same mob IDs dont appear in multiple instances.
-					if (npcData[id].instance[1] == value or value =="none" or not value) then
-						local name = npcData[id].name or id
-						local markerType = npcData[id].markerType[1]
-						for i=2, #npcData[id].markerType do
-							markerType = markerType .. ", " .. tostring((npcData[id].markerType[i]))
-						end
-						tinsert (data, {name, markerType})
-					end
-				end
-				markingScroll:SetData (data)
-				markingScroll:Refresh()
-			end
-			markingScroll:UpdateList()
-			markingScroll:Show()
+			-- --this build a list of units and send it to the scroll
+			-- function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
+			-- 	local data = {}
+			-- 	for id, _ in pairs (npcData) do
+			-- 		-- i really sure hope the same mob IDs dont appear in multiple instances.
+			-- 		if (npcData[id].instance[1] == value or value =="none" or not value) then
+			-- 			local name = npcData[id].name or id
+			-- 			local markerType = npcData[id].markerType[1]
+			-- 			for i=2, #npcData[id].markerType do
+			-- 				markerType = markerType .. ", " .. tostring((npcData[id].markerType[i]))
+			-- 			end
+			-- 			tinsert (data, {name, markerType})
+			-- 		end
+			-- 	end
+			-- 	markingScroll:SetData (data)
+			-- 	markingScroll:Refresh()
+			-- end
+			-- markingScroll:UpdateList()
+			-- markingScroll:Show()
 		end
 	end
 
