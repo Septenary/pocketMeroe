@@ -435,6 +435,8 @@ function PocketMeroe_MenuToggle()
 	local menu = meroeOptions or PocketMeroe_CreateMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
+		--needs to visually reset after closing the options menu
+		PocketMeroe.markingScroll:UpdateList(nil, var, true, "none");
 	end
 end
 
@@ -872,6 +874,7 @@ function PocketMeroe_CreateMenu()
 				local data = {}
 				for id, _ in pairs (npcData) do
 					-- i really sure hope the same mob IDs dont appear in multiple instances.
+					-- i think we're lucky enough that raid instances only contain monsters unique to that instance
 					if (npcData[id].instance[1] == value or value =="none" or not value) then
 						local name = npcData[id].name or id
 						local markerType = npcData[id].markerType[1]
