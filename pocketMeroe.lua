@@ -810,53 +810,81 @@ function PocketMeroe_CreateMenu()
 			DF:ReskinSlider (markingScroll)
 			markingScroll:SetPoint("TOPLEFT", marksConfigFrame, "TOPLEFT", 5, -140)
 
+
 			--create the scroll widgets
-			-- local createLine = function(self, index)
-			-- 	local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
-			-- 	line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(config.scroll_line_height+1)) - 1)
-			-- 	line:SetSize(config.scroll_width - 2, config.scroll_line_height)
+			local createLine = function(self, index)
+				local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
+				line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(config.scroll_line_height+1)) - 1)
+				line:SetSize(config.scroll_width - 2, config.scroll_line_height)
 
-			-- 	line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-			-- 	line:SetBackdropColor(unpack (config.backdrop_color))
+				line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
+				line:SetBackdropColor(unpack (config.backdrop_color))
 
-			-- 	local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
-			-- 	local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
+				local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
+				local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
 
-			-- 	DF:SetFontSize (name, 10)
-			-- 	DF:SetFontSize (markerType, 10)
+				DF:SetFontSize (name, 10)
+				DF:SetFontSize (markerType, 10)
 
-			-- 	name:SetPoint("LEFT", line, "LEFT", 4, 0)
-			-- 	markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
+				name:SetPoint("LEFT", line, "LEFT", 4, 0)
+				markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
 
-			-- 	line.name = name
-			-- 	line.markerType = markerType
-			-- 	return line
-			-- end
+				
 
-			-- --create the scroll widgets
-			-- for i = 1, config.scroll_lines do
-			-- 	markingScroll:CreateLine (createLine, i)
-			-- end
+				line.name = name
+				line.markerType = markerType
+				return line
+			end
 
-			-- --this build a list of units and send it to the scroll
-			-- function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
-			-- 	local data = {}
-			-- 	for id, _ in pairs (npcData) do
-			-- 		-- i really sure hope the same mob IDs dont appear in multiple instances.
-			-- 		if (npcData[id].instance[1] == value or value =="none" or not value) then
-			-- 			local name = npcData[id].name or id
-			-- 			local markerType = npcData[id].markerType[1]
-			-- 			for i=2, #npcData[id].markerType do
-			-- 				markerType = markerType .. ", " .. tostring((npcData[id].markerType[i]))
-			-- 			end
-			-- 			tinsert (data, {name, markerType})
-			-- 		end
-			-- 	end
-			-- 	markingScroll:SetData (data)
-			-- 	markingScroll:Refresh()
-			-- end
-			-- markingScroll:UpdateList()
-			-- markingScroll:Show()
+			--create the scroll widgets
+			for i = 1, config.scroll_lines do
+				local line = markingScroll:CreateLine (createLine, i)
+				line:SetPoint("TOP",0,-35-(i-1)*25)
+				line:SetPoint("LEFT",5,0)
+				line:SetPoint("RIGHT",-25,0)
+				line:SetHeight(25)
+				line._i = i
+
+				local marks = CreateFrame("Frame",nil,line)
+				marks:EnableMouse(true)
+				marks.Background = marks:CreateTexture(nil,"BACKGROUND")
+				marks.Background:SetColorTexture(0,0,0,.3)
+				marks.Background:SetPoint("TOPLEFT")
+				marks.Background:SetPoint("BOTTOMRIGHT")
+				marks:SetPoint("CENTER",18,0)
+				marks:SetSize(20*9,20)
+				marks.list = {}
+				for i=1,9 do
+					marks.list[i] = marks:CreateTexture(nil,"ARTWORK")
+					marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
+					marks.list[i]:SetSize(18,18)
+					marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+					if i == 9 then
+						marks.list[i]:SetTexCoord(0.125,0.1875,0.5,0.625)
+						marks.list[i]:SetVertexColor(1,1,1,0.7)			
+					end
+				end
+				line.marks = marks
+			end
+
+			--this build a list of units and send it to the scroll
+			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
+				local data = {}
+				for id, _ in pairs (npcData) do
+					-- i really sure hope the same mob IDs dont appear in multiple instances.
+					if (npcData[id].instance[1] == value or value =="none" or not value) then
+						local name = npcData[id].name or id
+						local markerType = npcData[id].markerType[1]
+
+
+						tinsert (data, {name, markerType})
+					end
+				end
+				markingScroll:SetData (data)
+				markingScroll:Refresh()
+			end
+			markingScroll:UpdateList()
+			markingScroll:Show()
 		end
 	end
 
