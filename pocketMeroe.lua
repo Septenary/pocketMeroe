@@ -118,8 +118,7 @@ function PocketMeroeFrame_OnLoad()
 	
 	_G["MarkingModifier"]	= PocketMeroe.db.profile.marking_modifier
 	_G["ClearModifier"]		= PocketMeroe.db.profile.clear_modifier
-	_G["npcData"] 			= PocketMeroe.db.profile.markersCustom
-	
+
 	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
 	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
 
@@ -179,7 +178,6 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 ------ Bits and pieces for UI ------------------------------------------------------------------------------------------
 local PocketMeroe_OptionsOnClick = function(_, _, option, value, value2, mouseButton)
-	helpers.markersCustom = PocketMeroe.db.profile.markersCustom or {}
 	if option == "use_mouseover" then
 		PocketMeroe.db.profile.use_mouseover = not PocketMeroe.db.profile.use_mouseover
 		return
@@ -606,6 +604,7 @@ function PocketMeroe_CreateMenu()
 			--this build a list of units and send it to the scroll
 			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
 				local data = {}
+				local npcData = PocketMeroe.db.profile.markersCustom
 				for id, _ in pairs (npcData) do
 					-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
 					-- i really sure hope the same mob IDs dont appear in multiple instances.
@@ -665,13 +664,13 @@ function PocketMeroe_InitTooltips ()
 			local guid = UnitGUID(unitId)
 			if guid then 
 				local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
-				local npcInfo = npcData[npc_id]
+--[[ 				local npcInfo = PocketMeroe.db.profile.markersCustom[npc_id]
 				if npcInfo then
 					if (npcInfo.untauntable) then
 						local ttIcon = "|T136122:0|t"
 						GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
 					end
-				end
+				end ]]
 				-- tooltip:Show();
 				if (GameTooltip:GetWidth() > 700) then
 					GameTooltip:SetWidth(700)
@@ -937,45 +936,41 @@ function PocketMeroe_InitMarking ()
 	-- Set marker type for npc id
 	helpers.markersGetTypeForNpc = function(f, npcId, npcName)
 		-- Overrides via custom options
-		local npcHoverCustom = _G["npcData"][npcId]
-		if npcHoverCustom then
-			local npcName = npcHoverCustom[4]
-			if npcName then 
-				print("NPC with name: ", npcHoverCustom[4], "was located! joy!")
-			else
-				print("NPC with ID", npcId, "is missing NPC name in npcData")
+		local npcData = PocketMeroe.db.profile.markersCustom
+		npcId = tonumber(npcId)
+		if npcId then
+			for id, _ in pairs (npcData) do
+				print(id)
+				if  (id == npcId) then
+					print("NPC Details: ", print(id))
+					print("  Name:", npcData[id][5])
+					print("  Zone:", npcData[id][3], npcData[id][4])
+					print("  Priority:", npcData[id][2])
+					print("  Raid Icons:", table.concat(npcData[id][1], ", "))
+					for i, raidIcon in ipairs(npcData[id][1] or {8,7,6,5,4,3,2,1}) do -- 1 = raid icons
+						if raidIcon then
+							print("Raid Icon: " .. raidIcon)
+							--local customMarkerType = npcData[id][1][i]
+							--tinsert(npcData[2], customMarkerType)
+						end
+					end
+					return npcData[id][2], (npcData[npcId].markerBias or 0.0)
+				--else
+					--wipe(npcData[npcId].markerType)
+				--end
 			end
-			
-			-- Initialize npcData[npcId] if it doesn't exist
-			if (npcData[npcId][1] == {}) then
-				npcData[npcId][1] = {8,7,6,5,4,3,2,1}
-				helpers.markersCustom[npcId] = {8,7,6,5,4,3,2,1}
-			end
-
-			for i, raidIcon in ipairs(npcHoverCustom[1]) do -- 1 = raid icons
-				if raidIcon then
-					print("Raid Icon: " .. raidIcon)
-					local customMarkerType = npcData[raidIcon]
-					tinsert(helpers.markersCustom[npcId].markerType, customMarkerType)
-				end
-			end
-				print("NPC with ID", npcId, "missing data in npcData")
-			end
-			
-		else
-			print("NPC with ID", npcId, "not found in npcData")
 		end
-
 		-- Default npc data
-		if npcData[npcId] and npcData[npcId].markerType then
-			print("!!")
-			if (npcData[npcId][2] == {}) then
-				helpers.markersCustom[npcId] = {8,7,6,5,4,3,2,1}
+		print("NPC with ID", npcId, "not found in npcData")
+		if npcData[npcId] and npcData[npcId][2] then
+			if (npcData[npcId].markerType == {}) then
+				npcData[npcId][1] = {8,7,6,5,4,3,2,1}
 			end
-			return npcData[npcId].markerType, (helpers.markersCustom[npcId].markerBias or 0.0)
+			return npcData[npcId].markerType, (npcData[npcId].markerBias or 0.0)
 		end
 		return nil
 	end
+
 	-- markersSetUnit <- markersClearUnit <- markersClearIndex
 	-- Set marker type for unit 
 	helpers.markersClearIndex = function(index)
