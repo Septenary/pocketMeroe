@@ -38,10 +38,10 @@ local default_config = {
 			shift = false,
 		},
 		markersCustom = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
-		[1706]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
-		[1707]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
-		[1708]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
-		[3501]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
+		[1706]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
+		[1707]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
+		[1708]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
+		[3501]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
 		[14750] = {{},1,"ZG", "Trash", "Gurubashi Bat Rider"},
 		[14883] = {{},1,"ZG", "Trash", "Voodoo Slave"},
 		[11830] = {{},1,"ZG", "Trash", "Hakkari Priest"},
@@ -79,12 +79,12 @@ local default_config = {
 		[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
 		[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
 		[15264] = {{4,3,2,1},1,"AQ40", "Trash", "Anubisath Sentinel"},
-		[15981] = {{4,3,2,1},1,"Naxx", "Trash", "Naxxramas Acolyte"},
-		[16452] = {{4,3,2,1},1,"Naxx", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
-		[16017] = {{4,3,2,1},1,"Naxx", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
-		[16021] = {{4,3,2,1},1,"Naxx", "Trash", "Living Monstrosity"},
-		[16020] = {{4,3,2,1},1,"Naxx", "Trash", "Mad Scientist"},
-		[16447] = {{8,7,6,5},3,"Naxx", "Trash", "Plagued Ghoul"},
+		[15981] = {{4,3,2,1},1,"NAXX", "Trash", "Naxxramas Acolyte"},
+		[16452] = {{4,3,2,1},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
+		[16017] = {{4,3,2,1},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
+		[16021] = {{4,3,2,1},1,"NAXX", "Trash", "Living Monstrosity"},
+		[16020] = {{4,3,2,1},1,"NAXX", "Trash", "Mad Scientist"},
+		[16447] = {{8,7,6,5},3,"NAXX", "Trash", "Plagued Ghoul"},
 		}
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
@@ -239,7 +239,7 @@ end
 
 local BuildRaidOptions = function(var)
     local raids = {
-        { label = "All",       value = "TEST" },
+        { label = "All",       value = "none" },
         { label = "Zul'Gurub", value = "ZG" },
         { label = "Ruins of Ahn'Qiraj", value = "AQ20" },
         { label = "Molten Core", value = "MC" },
@@ -489,7 +489,7 @@ function PocketMeroe_CreateMenu()
 			{
 				type = "select",
 				get = function() 
-					return "TEST" or "ZG" or "AQ20" or "MC" or "BWL"
+					return "none" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
 				values = function () return BuildRaidOptions(PocketMeroe.db.profile.var) end,
 				name = "Raid:",
@@ -610,11 +610,10 @@ function PocketMeroe_CreateMenu()
 					-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
 					-- i really sure hope the same mob IDs dont appear in multiple instances.
 					-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-					if (npcData[id][3] == value or value =="TEST" or not value) then
+					if (npcData[id][3] == value or value =="none" or not value) then
 						local name = npcData[id][5] or id
-						local markerType = npcData[id][2] .. " | " .. npcData[id][2]
-
-
+						local markerType = ""
+						if type(npcData[id][2])~="table" then markerType = "#".. npcData[id][2] else markerType = "#10" end
 						tinsert (data, {name, markerType})
 					end
 				end
@@ -938,40 +937,42 @@ function PocketMeroe_InitMarking ()
 	-- Set marker type for npc id
 	helpers.markersGetTypeForNpc = function(f, npcId, npcName)
 		-- Overrides via custom options
-		for _, npcCustom in pairs(helpers.markersCustom) do
-		    local customId = helpers.markersCustom[npcCustom]
-		    --local customName = npcCustom.npcName
-		    --if (customId == "") and (customName == npcName) then
-			if not customId then
-		        customId = npcId
-		    end
-		    if customId and (customId == npcId) then
-		        if not npcData[npcId] then
-		            npcData[npcId] = {
-		                abilities = {}
-		            }
-		        end
-		        if not npcData[npcId][2] then -- 2 = priority
-		            npcData[npcId][2] = {}
-		        else
-		            wipe(npcData[npcId][2])
-		        end
-				if helpers.markersCustom[npcCustom] then
-					for i, b in pairs(helpers.markersCustom[npcCustom]) do -- 1 = raid icons
-						if b then
-							local customMarkerType = helpers.markersCustom[i]
-							tinsert(npcData[npcId].markerType, customMarkerType)
-						end
-					end
+		local npcHoverCustom = _G["npcData"][npcId]
+		if npcHoverCustom then
+			local npcName = npcHoverCustom[4]
+			if npcName then 
+				print("NPC with name: ", npcHoverCustom[4], "was located! joy!")
+			else
+				print("NPC with ID", npcId, "is missing NPC name in npcData")
+			end
+			
+			-- Initialize npcData[npcId] if it doesn't exist
+			if (npcData[npcId][1] == {}) then
+				npcData[npcId][1] = {8,7,6,5,4,3,2,1}
+				helpers.markersCustom[npcId] = {8,7,6,5,4,3,2,1}
+			end
+
+			for i, raidIcon in ipairs(npcHoverCustom[1]) do -- 1 = raid icons
+				if raidIcon then
+					print("Raid Icon: " .. raidIcon)
+					local customMarkerType = npcData[raidIcon]
+					tinsert(helpers.markersCustom[npcId].markerType, customMarkerType)
 				end
-		    end
+			end
+				print("NPC with ID", npcId, "missing data in npcData")
+			end
+			
+		else
+			print("NPC with ID", npcId, "not found in npcData")
 		end
+
 		-- Default npc data
 		if npcData[npcId] and npcData[npcId].markerType then
-			if (npcData[npcId].markerType == "default") then
-				npcData[npcId].markerType = {8,7,6,5,4,3,2,1}
+			print("!!")
+			if (npcData[npcId][2] == {}) then
+				helpers.markersCustom[npcId] = {8,7,6,5,4,3,2,1}
 			end
-			return npcData[npcId].markerType, (npcData[npcId].markerBias or 0.0)
+			return npcData[npcId].markerType, (helpers.markersCustom[npcId].markerBias or 0.0)
 		end
 		return nil
 	end
