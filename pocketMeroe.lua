@@ -16,7 +16,6 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 local version = "v0.0.5"
 local config = {};
 local helpers = {};
-local npcData = {};
 local PocketMeroeFrame = CreateFrame("Frame");
 
 -- (Details!: Framework) get the framework table
@@ -38,54 +37,54 @@ local default_config = {
 			ctrl = false,
 			shift = false,
 		},
-		monsters = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
-		[1706]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
-		[1707]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
-		[1708]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
-		[3501]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
-		[14750] = {},1,"ZG", "Trash", "Gurubashi Bat Rider",
-		[14883] = {},1,"ZG", "Trash", "Voodoo Slave",
-		[11830] = {},1,"ZG", "Trash", "Hakkari Priest",
-		[11353] = {},1,"ZG", "Trash", "Gurubashi Blood Drinker",
-		[11671] = {},1,"MC", "Trash", "Core Hound",
-		[12076] = {},1,"MC", "Trash", "Lava Elemental",
-		[12100] = {},1,"MC", "Trash", "Lava Reaver",
-		[11659] = {1, 2, 3, 4, 5, 6, 7, 8},1,"MC", "Trash", "Molten Destroyer",
-		[12118] = {5},1,"MC", "Boss", "Lucifron",
-		[12119] = {8,7},1,"MC", "Ads", "Flamewaker Protector",
-		[11982] = {},1,"MC", "Boss", "Magmadar",
-		[12099] = {},1,"MC", "Boss", "Garr",
-		[12056] = {},1,"MC", "Trash", "Firesworn",
-		[12264] = {},1,"MC", "Boss", "Baron Geddon",
-		[11988] = {},1,"MC", "Boss", "Shazzrah",
-		[11672] = {},1,"MC", "Trash", "Core Rager",
-		[11662] = {},1,"MC", "Trash", "Flamewaker Priest",
-		[11663] = {},1,"MC", "Trash", "Flamewaker Healer",
-		[12468] = {1, 2, 3, 4, 5, 6, 7, 8},2,"BWL", "Trash", "Death Talon Hatcher",
-		[12458] = {1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster",
-		[12459] = {},1,"BWL", "Trash", "Blackwing Warlock",
-		[12457] = {},1,"BWL", "Trash", "Blackwing Spellbinder",
-		[12467] = {1},1,"BWL", "Trash", "Death Talon Captain",
-		[12463] = {8, 7},1,"BWL", "Trash", "Death Talon Flamescale",
-		[12464] = {6, 5},1,"BWL", "Trash", "Death Talon Seether",
-		[12465] = {4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin",
-		[12420] = {1, 2, 3, 4, 5, 6, 7, 8},1,"BWL", "Ads", "Blackwing Mage",
-		[15391] = {1, 2, 3, 4, 5, 6, 7, 8},1,"AQ20", "Ads", "Buru Egg",
-		[15392] = {1},1,"AQ20", "Ads", "Captian Qeez",
-		[15389] = {2},1,"AQ20", "Ads", "Captian Tuubid",
-		[15390] = {3},1,"AQ20", "Ads", "Captian Drenn",
-		[15386] = {4},1,"AQ20", "Ads", "Captian Xurrem",
-		[15388] = {5},1,"AQ20", "Ads", "Major Yeggeth",
-		[15385] = {6},1,"AQ20", "Ads", "Major Pakkon",
-		[15341] = {7},1,"AQ20", "Ads", "Colonel Zerran",
-		[15514] = {8},1,"AQ20", "Boss", "General Rajaxx",
-		[15264] = {4,3,2,1},1,"AQ40", "Trash", "Anubisath Sentinel",
-		[15981] = {4,3,2,1},1,"Naxx", "Trash", "Naxxramas Acolyte",
-		[16452] = {4,3,2,1},1,"Naxx", "Trash", "Necro Knight Guardian", --holy shit these mobs hit hard!
-		[16017] = {4,3,2,1},1,"Naxx", "Trash", "Patchwork Golem", --these cleave! omg! chain cleave! 360!
-		[16021] = {4,3,2,1},1,"Naxx", "Trash", "Living Monstrosity",
-		[16020] = {4,3,2,1},1,"Naxx", "Trash", "Mad Scientist",
-		[16447] = {8,7,6,5},3,"Naxx", "Trash", "Plagued Ghoul",
+		markersCustom = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
+		[1706]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
+		[1707]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
+		[1708]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
+		[3501]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA"},
+		[14750] = {{},1,"ZG", "Trash", "Gurubashi Bat Rider"},
+		[14883] = {{},1,"ZG", "Trash", "Voodoo Slave"},
+		[11830] = {{},1,"ZG", "Trash", "Hakkari Priest"},
+		[11353] = {{},1,"ZG", "Trash", "Gurubashi Blood Drinker"},
+		[11671] = {{},1,"MC", "Trash", "Core Hound"},
+		[12076] = {{},1,"MC", "Trash", "Lava Elemental"},
+		[12100] = {{},1,"MC", "Trash", "Lava Reaver"},
+		[11659] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"MC", "Trash", "Molten Destroyer"},
+		[12118] = {{5},1,"MC", "Boss", "Lucifron"},
+		[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
+		[11982] = {{},1,"MC", "Boss", "Magmadar"},
+		[12099] = {{},1,"MC", "Boss", "Garr"},
+		[12056] = {{},1,"MC", "Trash", "Firesworn"},
+		[12264] = {{},1,"MC", "Boss", "Baron Geddon"},
+		[11988] = {{},1,"MC", "Boss", "Shazzrah"},
+		[11672] = {{},1,"MC", "Trash", "Core Rager"},
+		[11662] = {{},1,"MC", "Trash", "Flamewaker Priest"},
+		[11663] = {{},1,"MC", "Trash", "Flamewaker Healer"},
+		[12468] = {{1, 2, 3, 4, 5, 6, 7, 8},2,"BWL", "Trash", "Death Talon Hatcher"},
+		[12458] = {{1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster"},
+		[12459] = {{},1,"BWL", "Trash", "Blackwing Warlock"},
+		[12457] = {{},1,"BWL", "Trash", "Blackwing Spellbinder"},
+		[12467] = {{1},1,"BWL", "Trash", "Death Talon Captain"},
+		[12463] = {{8, 7},1,"BWL", "Trash", "Death Talon Flamescale"},
+		[12464] = {{6, 5},1,"BWL", "Trash", "Death Talon Seether"},
+		[12465] = {{4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin"},
+		[12420] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"BWL", "Ads", "Blackwing Mage"},
+		[15391] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"AQ20", "Ads", "Buru Egg"},
+		[15392] = {{1},1,"AQ20", "Ads", "Captian Qeez"},
+		[15389] = {{2},1,"AQ20", "Ads", "Captian Tuubid"},
+		[15390] = {{3},1,"AQ20", "Ads", "Captian Drenn"},
+		[15386] = {{4},1,"AQ20", "Ads", "Captian Xurrem"},
+		[15388] = {{5},1,"AQ20", "Ads", "Major Yeggeth"},
+		[15385] = {{6},1,"AQ20", "Ads", "Major Pakkon"},
+		[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
+		[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
+		[15264] = {{4,3,2,1},1,"AQ40", "Trash", "Anubisath Sentinel"},
+		[15981] = {{4,3,2,1},1,"Naxx", "Trash", "Naxxramas Acolyte"},
+		[16452] = {{4,3,2,1},1,"Naxx", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
+		[16017] = {{4,3,2,1},1,"Naxx", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
+		[16021] = {{4,3,2,1},1,"Naxx", "Trash", "Living Monstrosity"},
+		[16020] = {{4,3,2,1},1,"Naxx", "Trash", "Mad Scientist"},
+		[16447] = {{8,7,6,5},3,"Naxx", "Trash", "Plagued Ghoul"},
 		}
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
@@ -119,7 +118,7 @@ function PocketMeroeFrame_OnLoad()
 	
 	_G["MarkingModifier"]	= PocketMeroe.db.profile.marking_modifier
 	_G["ClearModifier"]		= PocketMeroe.db.profile.clear_modifier
-	_G["npcData"] 			= PocketMeroe.db.profile.monsters
+	_G["npcData"] 			= PocketMeroe.db.profile.markersCustom
 	
 	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
 	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
@@ -180,7 +179,7 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 ------ Bits and pieces for UI ------------------------------------------------------------------------------------------
 local PocketMeroe_OptionsOnClick = function(_, _, option, value, value2, mouseButton)
-	helpers.markersCustom = PocketMeroe.db.profile.monsters or {}
+	helpers.markersCustom = PocketMeroe.db.profile.markersCustom or {}
 	if option == "use_mouseover" then
 		PocketMeroe.db.profile.use_mouseover = not PocketMeroe.db.profile.use_mouseover
 		return
@@ -240,7 +239,7 @@ end
 
 local BuildRaidOptions = function(var)
     local raids = {
-        { label = "All",       value = "NONE" },
+        { label = "All",       value = "TEST" },
         { label = "Zul'Gurub", value = "ZG" },
         { label = "Ruins of Ahn'Qiraj", value = "AQ20" },
         { label = "Molten Core", value = "MC" },
@@ -256,7 +255,7 @@ local BuildRaidOptions = function(var)
             label = raid.label,
             value = raid.value,
             onclick = function()
-                PocketMeroe.markingScroll:UpdateList(nil, var, true, raid.value:lower())
+                PocketMeroe.markingScroll:UpdateList(nil, var, true, raid.value)
             end,
         })
     end
@@ -490,7 +489,7 @@ function PocketMeroe_CreateMenu()
 			{
 				type = "select",
 				get = function() 
-					return "NONE" or "ZG" or "AQ20" or "MC" or "BWL"
+					return "TEST" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
 				values = function () return BuildRaidOptions(PocketMeroe.db.profile.var) end,
 				name = "Raid:",
@@ -535,7 +534,7 @@ function PocketMeroe_CreateMenu()
 							local name, markerType = unpack(data)
 							--print(index, name, markerType)
 							line.name:SetText(name)
-							line.markerType:SetText(markerType)
+							line.markerType:SetText(tostring(markerType))
 						end
 					end
 				end
@@ -608,11 +607,12 @@ function PocketMeroe_CreateMenu()
 			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
 				local data = {}
 				for id, _ in pairs (npcData) do
+					-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
 					-- i really sure hope the same mob IDs dont appear in multiple instances.
 					-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-					if (npcData[id].instance[1] == value or value =="none" or not value) then
-						local name = npcData[id].name or id
-						local markerType = npcData[id].markerType[1]
+					if (npcData[id][3] == value or value =="TEST" or not value) then
+						local name = npcData[id][5] or id
+						local markerType = npcData[id][2] .. " | " .. npcData[id][2]
 
 
 						tinsert (data, {name, markerType})
@@ -709,7 +709,7 @@ function PocketMeroe_InitMarking ()
 	helpers.markersModifierIsPressed = false
 	helpers.clearModifierIsPressed = false
 	-- Group mappings for custom npcs
-	helpers.markersCustom = PocketMeroe.db.profile.monsters or {}
+	helpers.markersCustom = PocketMeroe.db.profile.markersCustom or {}
 
 
 	-- Check if marking (and unmarking) units is enabled
@@ -938,8 +938,8 @@ function PocketMeroe_InitMarking ()
 	-- Set marker type for npc id
 	helpers.markersGetTypeForNpc = function(f, npcId, npcName)
 		-- Overrides via custom options
-		for _, npcCustom in ipairs(PocketMeroe.db.profile.raidMarkersCustom) do
-		    local customId = npcCustom.npcId
+		for _, npcCustom in pairs(helpers.markersCustom) do
+		    local customId = helpers.markersCustom[npcCustom]
 		    --local customName = npcCustom.npcName
 		    --if (customId == "") and (customName == npcName) then
 			if not customId then
@@ -956,12 +956,14 @@ function PocketMeroe_InitMarking ()
 		        else
 		            wipe(npcData[npcId][2])
 		        end
-		        for i, b in ipairs(npcCustom[1]) do -- 1 = raid icons
-		            if b then
-		                local customMarkerType = helpers.markersCustom[i]
-		                tinsert(npcData[npcId].markerType, customMarkerType)
-		            end
-		        end
+				if helpers.markersCustom[npcCustom] then
+					for i, b in pairs(helpers.markersCustom[npcCustom]) do -- 1 = raid icons
+						if b then
+							local customMarkerType = helpers.markersCustom[i]
+							tinsert(npcData[npcId].markerType, customMarkerType)
+						end
+					end
+				end
 		    end
 		end
 		-- Default npc data
@@ -998,11 +1000,11 @@ function PocketMeroe_InitMarking ()
 		local priority = helpers.markersGetPriority(markerType) + (markerBias or 0.0)
 		local markerCurrent = GetRaidTargetIndex(unitId)
 		local markerIndex = helpers.markersGetFreeIndex(f, markerType, priority, markerCurrent)
---[[ 		print("Unit:", unitId)
+		print("Unit:", unitId)
 		print("Marker Type:", markerType)
 		print("Priority:", priority)
 		print("Current Marker Index:", markerCurrent)
-		print("Free Marker Index:", markerIndex) ]]
+		print("Free Marker Index:", markerIndex)
 		if (markerIndex ~= nil) and (markerIndex ~= markerCurrent) then
 			--print("Setting marker for unit:", unitId)
 			helpers.markersClearUnit(unitId)
