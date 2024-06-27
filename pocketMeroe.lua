@@ -222,92 +222,46 @@ function PocketMeroe_MenuToggle()
 end
 
 local BuildModifierOptions = function(var)
-	local result = {
-		{
-			label = "None",
-			value = "none",
-			onclick = function()
-				PocketMeroe_SetModifier(nil, var, true, "none")
-			end,
-		},
-		{
-			label = "Alt",
-			value = "alt",
-			onclick = function()
-				PocketMeroe_SetModifier(nil, var, true, "alt")
-			end,
-		},
-		{
-			label = "Ctrl",
-			value = "ctrl",
-			onclick = function()
-				PocketMeroe_SetModifier(nil, var, true, "ctrl")
-			end,
-		},
-		{
-			label = "Shift",
-			value = "shift",
-			onclick = function()
-				PocketMeroe_SetModifier(nil, var, true, "shift")
-			end,
-		},
-	}
-	return result
+    local modifiers = {"none", "alt", "ctrl", "shift"}
+    local result = {}
+
+    for _, modifier in ipairs(modifiers) do
+        table.insert(result, {
+            label = modifier:gsub("^%l", string.upper),  -- Capitalize the first letter
+            value = modifier,
+            onclick = function()
+                PocketMeroe_SetModifier(nil, var, true, modifier)
+            end,
+        })
+    end
+
+    return result
 end
 
 local BuildRaidOptions = function(var)
-	local result = {
-		{
-			label = "All",
-			value = "none",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "none")
-			end,
-		},
-		{
-			label = "Zul'Gurub",
-			value = "zg",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "zg")
-			end,
-		},
-		{
-			label = "Ruins of Ahn'Qiraj",
-			value = "aq20",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "aq20")
-			end,
-		},
-		{
-			label = "Molten Core",
-			value = "mc",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "mc")
-			end,
-		},
-		{
-			label = "Blackwing Lair",
-			value = "bwl",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "bwl")
-			end,
-		},
-		{
-			label = "Temple of Ahn'Qiraj",
-			value = "aq40",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "aq40")
-			end,
-		},
-		{
-			label = "Naxxramas",
-			value = "naxx",
-			onclick = function()
-				PocketMeroe.markingScroll:UpdateList(nil, var, true, "naxx")
-			end,
-		},
-	}
-	return result
+    local raids = {
+        { label = "All",       value = "NONE" },
+        { label = "Zul'Gurub", value = "ZG" },
+        { label = "Ruins of Ahn'Qiraj", value = "AQ20" },
+        { label = "Molten Core", value = "MC" },
+        { label = "Blackwing Lair", value = "BWL" },
+        { label = "Temple of Ahn'Qiraj", value = "AQ40" },
+        { label = "Naxxramas", value = "NAXX" },
+    }
+
+    local result = {}
+
+    for _, raid in ipairs(raids) do
+        table.insert(result, {
+            label = raid.label,
+            value = raid.value,
+            onclick = function()
+                PocketMeroe.markingScroll:UpdateList(nil, var, true, raid.value:lower())
+            end,
+        })
+    end
+
+    return result
 end
 
 ------ Menu ------------------------------------------------------------------------------------------------------------
@@ -536,9 +490,9 @@ function PocketMeroe_CreateMenu()
 			{
 				type = "select",
 				get = function() 
-					return "none" or "zg" or "aq20" or "mc" or "bwl"
+					return "NONE" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
-				values = function () return BuildRaidOptions() end,
+				values = function () return BuildRaidOptions(PocketMeroe.db.profile.var) end,
 				name = "Raid:",
 				--desc = "",
 
@@ -674,28 +628,29 @@ function PocketMeroe_CreateMenu()
 
 
 --[[ 	
-	TODO: add other 6 tabs
-	TODO: add bossmods tab which controls features for boss enocunters
-		TODO: add boss encounter things
-			TODO: create frames for these and tie them into event handlers
-			 
-	TODO: add externals timers for usage during raid
-		TODO: assignment list on the background for trash/sheeps
-		TODO: tanks cooldowns used w options of including more people
-		TODO: calculate estimative to boss kill timer
-		TODO: distance to target somewhere in the screen, maybe on nameplate
+		TODO: Add "BossMods" tab to control boss encounter features.
+		TODO: Implement boss encounter functionalities.
+		TODO: Create frames for these and integrate with event handlers.
+		TODO: Replace Tems' WeakAuras and dominate the world *cackles maniacally*
 
-	TODO: add raid role organizer/selector
+
+		TODO: Integrate external timers for raid usage.
+		TODO: Implement assignment list for trash and sheeps.
+		TODO: Calculate estimated timer to monster dying.
+		TODO: Display distance to target, possibly on nameplates or screen.
+
+		TODO: Incorporate raid role optimizer using officer notes.
 ]]
 
---[[ 	local scenario = CreateFrame("frame", "PocketMeroeScenario", UIParent, "BackdropTemplate")
-	local scenarioDesc = DF:CreateLabel(scenario, "For |cFFFFFFFF<Serenity>|r - Mankrik, by |cFFFFFFFFmeroe|r")
-	scenarioDesc:ClearAllPoints()
-	scenarioDesc:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
-	scenarioDesc:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
-	scenarioDesc:SetHeight(20)
-	scenarioDesc:SetAlpha(0.9)
-	scenario:Show()
+--[[ 	
+		local scenario = CreateFrame("frame", "PocketMeroeScenario", UIParent, "BackdropTemplate")
+		local scenarioDesc = DF:CreateLabel(scenario, "For |cFFFFFFFF<Serenity>|r - Mankrik, by |cFFFFFFFFmeroe|r")
+		scenarioDesc:ClearAllPoints()
+		scenarioDesc:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
+		scenarioDesc:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
+		scenarioDesc:SetHeight(20)
+		scenarioDesc:SetAlpha(0.9)
+		scenario:Show()
  ]]
 
  	optionsFrame:Hide();
@@ -743,6 +698,9 @@ end
 	TODO: Broadcast some of this to party/raid members.
 ]]
 function PocketMeroe_InitMarking ()
+	-- lets get that addon prefix rolling
+	
+
 	-- List of all currently used markers
 	helpers.markersUsed = helpers.markersUsed or {}
 	helpers.markersUsedPriority = helpers.markersUsedPriority or {}
@@ -752,6 +710,8 @@ function PocketMeroe_InitMarking ()
 	helpers.clearModifierIsPressed = false
 	-- Group mappings for custom npcs
 	helpers.markersCustom = PocketMeroe.db.profile.monsters or {}
+
+
 	-- Check if marking (and unmarking) units is enabled
 	helpers.markersEnabled = function(f)
 		if not PocketMeroe.db.profile.use_mouseover then
@@ -843,9 +803,9 @@ function PocketMeroe_InitMarking ()
 			if guid then 
 				helpers.markersUsedByGUID[guid] = index
 			end
---[[ 			
-	TODO: markersUsedByGUID would be shared as it updates to other players in the raid
- ]]
+	--[[ 			
+		TODO: markersUsedByGUID would be shared as it updates to other players in the raid
+	]]
  			-- print(guid, "+", index)
 		end
 	end

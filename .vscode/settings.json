@@ -86,6 +86,7 @@
         "FauxScrollFrame_GetOffset",
         "ALTERNATE_POWER_INDEX",
         "FAILED",
-        "INTERRUPTED"
+        "INTERRUPTED",
+        "message"
     ]
 }
