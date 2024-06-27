@@ -3,21 +3,20 @@
 License: GPLv3
 pocketMeroe was made by meroe for <Serenity> - Mankrik.
 
-Author's note: Licensing is complicated. I used the Details!: Framework library (LGPLv3) for this addon.
-It can be found here: https://www.curseforge.com/wow/addons/libdframework and was made by Terciob,
-Details!: Framework is *also* complicated, so I used Terciob's WorldQuestTracker addon as a reference.
-WQT can be found here: https://www.curseforge.com/wow/addons/world-quest-tracker
-TODO: I also used code from Method Raid Tools. MRT uses LibDeflate which is GPLv3.
+Details!: Framework library (LGPLv3)
+https://www.curseforge.com/wow/addons/libdframework Terciob,
 
-Please DO NOT ask questions about pocketMeroe in the Details! discord, they would be very confused.
-The Details! discord server will NOT answer questions or offer support
-Thank you to Terciob, <Method>, and others for their contributions to the WoW community!
+WorldQuestTracker
+https://www.curseforge.com/wow/addons/world-quest-tracker Terciob,
 
+Method Raid Tools
+https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
-local version = "v0.0.4"
+local version = "v0.0.5"
 local config = {};
 local helpers = {};
+local npcData = {};
 local PocketMeroeFrame = CreateFrame("Frame");
 
 -- (Details!: Framework) get the framework table
@@ -39,277 +38,59 @@ local default_config = {
 			ctrl = false,
 			shift = false,
 		},
+		monsters = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
+		[1706]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
+		[1707]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
+		[1708]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
+		[3501]  = {1, 2, 3, 4, 5, 6, 7, 8},9,"TEST", "Boss", "AA",
+		[14750] = {},1,"ZG", "Trash", "Gurubashi Bat Rider",
+		[14883] = {},1,"ZG", "Trash", "Voodoo Slave",
+		[11830] = {},1,"ZG", "Trash", "Hakkari Priest",
+		[11353] = {},1,"ZG", "Trash", "Gurubashi Blood Drinker",
+		[11671] = {},1,"MC", "Trash", "Core Hound",
+		[12076] = {},1,"MC", "Trash", "Lava Elemental",
+		[12100] = {},1,"MC", "Trash", "Lava Reaver",
+		[11659] = {1, 2, 3, 4, 5, 6, 7, 8},1,"MC", "Trash", "Molten Destroyer",
+		[12118] = {5},1,"MC", "Boss", "Lucifron",
+		[12119] = {8,7},1,"MC", "Ads", "Flamewaker Protector",
+		[11982] = {},1,"MC", "Boss", "Magmadar",
+		[12099] = {},1,"MC", "Boss", "Garr",
+		[12056] = {},1,"MC", "Trash", "Firesworn",
+		[12264] = {},1,"MC", "Boss", "Baron Geddon",
+		[11988] = {},1,"MC", "Boss", "Shazzrah",
+		[11672] = {},1,"MC", "Trash", "Core Rager",
+		[11662] = {},1,"MC", "Trash", "Flamewaker Priest",
+		[11663] = {},1,"MC", "Trash", "Flamewaker Healer",
+		[12468] = {1, 2, 3, 4, 5, 6, 7, 8},2,"BWL", "Trash", "Death Talon Hatcher",
+		[12458] = {1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster",
+		[12459] = {},1,"BWL", "Trash", "Blackwing Warlock",
+		[12457] = {},1,"BWL", "Trash", "Blackwing Spellbinder",
+		[12467] = {1},1,"BWL", "Trash", "Death Talon Captain",
+		[12463] = {8, 7},1,"BWL", "Trash", "Death Talon Flamescale",
+		[12464] = {6, 5},1,"BWL", "Trash", "Death Talon Seether",
+		[12465] = {4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin",
+		[12420] = {1, 2, 3, 4, 5, 6, 7, 8},1,"BWL", "Ads", "Blackwing Mage",
+		[15391] = {1, 2, 3, 4, 5, 6, 7, 8},1,"AQ20", "Ads", "Buru Egg",
+		[15392] = {1},1,"AQ20", "Ads", "Captian Qeez",
+		[15389] = {2},1,"AQ20", "Ads", "Captian Tuubid",
+		[15390] = {3},1,"AQ20", "Ads", "Captian Drenn",
+		[15386] = {4},1,"AQ20", "Ads", "Captian Xurrem",
+		[15388] = {5},1,"AQ20", "Ads", "Major Yeggeth",
+		[15385] = {6},1,"AQ20", "Ads", "Major Pakkon",
+		[15341] = {7},1,"AQ20", "Ads", "Colonel Zerran",
+		[15514] = {8},1,"AQ20", "Boss", "General Rajaxx",
+		[15264] = {4,3,2,1},1,"AQ40", "Trash", "Anubisath Sentinel",
+		[15981] = {4,3,2,1},1,"Naxx", "Trash", "Naxxramas Acolyte",
+		[16452] = {4,3,2,1},1,"Naxx", "Trash", "Necro Knight Guardian", --holy shit these mobs hit hard!
+		[16017] = {4,3,2,1},1,"Naxx", "Trash", "Patchwork Golem", --these cleave! omg! chain cleave! 360!
+		[16021] = {4,3,2,1},1,"Naxx", "Trash", "Living Monstrosity",
+		[16020] = {4,3,2,1},1,"Naxx", "Trash", "Mad Scientist",
+		[16447] = {8,7,6,5},3,"Naxx", "Trash", "Plagued Ghoul",
+		}
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
 	},
 };
------- Mob Info --------------------------------------------------------------------------------------------------------
-local npcData = {};
-do
-	--- Stockades Test ---
-	npcData['1706'] = {
-		markerType = {"councilB"},
-		instance = {"test"},
-		untauntable = true,
-	};
-	npcData['1707'] = {
-		markerType = {"councilA"},
-		instance = {"test"},
-	};
-	npcData['1708'] = {
-		markerType = {"councilA"},
-		instance = {"test"},
-	};
-	npcData['3501'] = {
-		name = "Horde Guard (Test)",
-		markerType = {"rt1"},
-		instance = {"test"},
-		untauntable = true,
-	};
-
-	--- Zul'Gurub      ---
-	---- Trash         ---
-	npcData['14750'] = {
-		name = "Gurubashi Bat Rider",
-		markerType = {"focus"},
-		instance = {"zg"},
-	};
-	npcData['14883'] = {
-		name = "Voodoo Slave",
-		markerType = {"focus"},
-		instance = {"zg"},
-	};
-	npcData['11830'] = {
-		name = "Hakkari Priest",
-		markerType = {"focus"},
-		instance = {"zg"},
-	};
-	npcData['11353'] = {
-		name = "Gurubashi Blood Drinker",
-		markerType = {"sheep"},
-		instance = {"zg"},
-	};
-	--- Molten Core    ---
-	----  Trash       ----
-	npcData['11671'] = {
-		name = "Core Hound",
-		markerType = {"banish"},
-		instance = {"mc"},
-	};
-	npcData['12076'] = {
-		name = "Lava Elemental",
-		markerType = {"banish"},
-		instance = {"mc"},
-	};
-	npcData['12100'] = {
-		name = "Lava Reaver",
-		markerType = {"banish"},
-		instance = {"mc"},
-	};
-	npcData['11659'] = {
-		name = "Molten Destroyer",
-		markerType = {"focus"},
-		instance = {"mc"},
-	};
-	---- Bosses       ----
-	npcData['12118'] = {
-		name = "*Lucifron",
-		markerType = {"rt4"},
-		instance = {"mc"},
-	};
-	npcData['12119'] = {
-		name = "*Lucifron **Flamewaker Protector",
-		markerType = {"focus"},
-		instance = {"mc"},
-	};
-	npcData['11982'] = {
-		name = "*Magmadar",
-		markerType = {"rt8"},
-		instance = {"mc"},
-	};
-	npcData['12099'] = {
-		name = "*Garr **Firesworn",
-		markerType = {"primary", "secondary"},
-		instance = {"mc"},
-	};
-	npcData['12056'] = {
-		name = "*Baron Geddon",
-		markerType = {"rt8"},
-		instance = {"mc"},
-	};
-	npcData['12264'] = {
-		name = "*Shazzrah",
-		markerType = {"rt8"},
-		instance = {"mc"},
-	};
-	npcData['11988'] = {
-		name = "*Golemagg",
-		markerType = {"rt8"},
-		instance = {"mc"},
-	};
-	npcData['11672'] = {
-		name = "*Golemagg **Core Rager",
-		markerType = {"shackle"},
-		instance = {"mc"},
-	};
-	npcData['11662'] = {
-		name = "*Sulfuron Harbinger **Flamewaker Priest",
-		markerType = {"secondary"},
-		instance = {"mc"},
-	};
-	npcData['11663'] = {
-		name = "*Majordomo Executus) **Flamewaker Healer",
-		markerType = {"secondary"},
-		instance = {"mc"},
-	};
-	npcData['11664'] = {
-		name = "*Majordomo Executus & *Gehennas **Flamewaker Elite",
-		markerType = {"primary"},
-		instance = {"mc"},
-	};
-
-	--- Blackwing Lair ---
-	---- Trash        ----
-	npcData['12468'] = {
-		name = "Death Talon Hatcher",
-		markerType = {"primary", "secondary"},
-		instance = {"bwl"},
-	};
-	npcData['12458'] = {
-		name = "Blackwing Taskmaster",
-		markerType = {"rt2"},
-		instance = {"bwl"},
-	};
-	npcData['12459'] = {
-		name = "Blackwing Warlock",
-		markerType = {"primary", "secondary"},
-		instance = {"bwl"},
-	};
-	npcData['12457'] = {
-		name = "Blackwing Spellbinder",
-		markerType = {"secondary"},
-		instance = {"bwl"},
-	};
-	---- Vael Pack     ---
-	npcData['12467'] = {
-		name = "Death Talon Captain",
-		markerType = {"rt1"},
-		instance = {"bwl"},
-	};
-	npcData['12463'] = {
-		name = "Death Talon Flamescale",
-		markerType = {"focus"},
-		instance = {"bwl"},
-	};
-	npcData['12464'] = {
-		name = "Death Talon Seether",
-		markerType = {"banish"},
-		instance = {"bwl"},
-	};
-	npcData['12465'] = {
-		name = "Death Talon Wyrmkin",
-		markerType = {"shackle"},
-		instance = {"bwl"},
-	};
-	--12460
-	---- Bosses        ---
-	npcData['12420'] = {
-		name = "(Razorgore) Blackwing Mage",
-		markerType = {"primary"},
-		instance = {"bwl"},
-	};
-
-
-	--- AQ20           ---
-	---- Trash         ---
-	---- Bosses        ---
-	npcData['15514'] = {
-		name = "(Buru) Buru Egg",
-		markerType = {"primary", "secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15391'] = {
-		name = "(General Rajaxx) Captian Qeez",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15392'] = {
-		name = "(General Rajaxx) Captian Tuubid",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15389'] = {
-		name = "(General Rajaxx) Captian Drenn",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15390'] = {
-		name = "(General Rajaxx) Captian Xurrem",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15386'] = {
-		name = "(General Rajaxx) Major Yeggeth",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15388'] = {
-		name = "(General Rajaxx) Major Pakkon",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15385'] = {
-		name = "(General Rajaxx) Colonel Zerran",
-		markerType = {"secondary"},
-		instance = {"aq20"},
-	};
-	npcData['15341'] = {
-		name = "(General Rajaxx) General Rajaxx",
-		markerType = {"rt8"},
-		instance = {"aq20"},
-	};
-
-	--- AQ40           ---
-	---- Trash        ----
-	npcData['15264'] = {
-		name = "Anubisath Sentinel",
-		markerType = {"primary"},
-		instance = {"aq40"},
-	};
-	--- Naxxramas      ---
-	---- Trash        ----
-	npcData['15981'] = {
-		name = "Naxxramas Acolyte",
-		markerType = {"sheep", "primary"},
-		instance = {"naxx"},
-	};
-	npcData['16452'] = {
-		name = "Necro Knight Guardian",
-		markerType = {"primary","secondary"},
-		instance = {"naxx"},
-	};
-	npcData['16017'] = {
-		name = "Patchwork Golem",
-		markerType = {"secondary"},
-		instance = {"naxx"},
-	};
-	npcData['16021'] = {
-		name = "Living Monstrosity",
-		markerType = {"focus"},
-		instance = {"naxx"},
-	};
-	npcData['16020'] = {
-		name = "Mad Scientist",
-		markerType = {"primary", "secondary"},
-		instance = {"naxx"},
-	};
-	npcData['16447'] = {
-		name = "Plagued Ghoul",
-		markerType = {"primary", "secondary"},
-		instance = {"naxx"},
-	};
-end
-------------------------------------------------------------------------------------------------------------------------
 
 --[[ 
 	TODO: cooltip clears
@@ -333,13 +114,15 @@ function PocketMeroeFrame_OnLoad()
 	if (PocketMeroe.db:GetCurrentProfile() ~= "Default") then
 		PocketMeroe.db:SetProfile("Default")
 	end
+	
 	PocketMeroe.db.RegisterCallback(PocketMeroe, "OnProfileChanged", "RefreshConfig")
 	
-	_G["MarkingModifier"] = PocketMeroe.db.profile.marking_modifier
-	_G["ClearModifier"] = PocketMeroe.db.profile.clear_modifier
-
-	ChatFrame1:AddMessage(" pocketMeroe by meroe - <Serenity> is loaded ");
-	ChatFrame1:AddMessage(" Remember kids, 'meroe' rhymes with '░░░░░' ");
+	_G["MarkingModifier"]	= PocketMeroe.db.profile.marking_modifier
+	_G["ClearModifier"]		= PocketMeroe.db.profile.clear_modifier
+	_G["npcData"] 			= PocketMeroe.db.profile.monsters
+	
+	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
+	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
 
 	PocketMeroeFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
 	PocketMeroeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -356,7 +139,7 @@ function PocketMeroeFrame_OnEvent(_,event)
 
 	if (event == "MODIFIER_STATE_CHANGED") then
 		if helpers.markersModifierChanged then
-			helpers.markersModifierChanged(f)
+			helpers.markersModifierChanged()
 		end
 	end
 
@@ -365,7 +148,7 @@ function PocketMeroeFrame_OnEvent(_,event)
 		helpers.tooltipHooked = true
 		GameTooltip:HookScript("OnTooltipSetUnit", function(tooltip)
 				if helpers.tooltipExtend then
-					helpers.tooltipExtend(tooltip, f)
+					helpers.tooltipExtend(tooltip)
 				end
 		end)
 	end
@@ -423,12 +206,13 @@ local PocketMeroe_SetSetting = function(...)
 end
 
 local PocketMeroe_SetModifier = function(_, var, value, key)
-	PocketMeroe.db.profile [var].none = false
-	PocketMeroe.db.profile [var].alt = false
-	PocketMeroe.db.profile [var].ctrl = false
-	PocketMeroe.db.profile [var].shift = false
-
-	PocketMeroe.db.profile [var] [key] = value
+	if PocketMeroe.db.profile[var] then
+		PocketMeroe.db.profile [var].none = false
+		PocketMeroe.db.profile [var].alt = false
+		PocketMeroe.db.profile [var].ctrl = false
+		PocketMeroe.db.profile [var].shift = false
+		PocketMeroe.db.profile [var] [key] = value
+	end
 end
 
 function PocketMeroe_MenuToggle()
@@ -436,7 +220,7 @@ function PocketMeroe_MenuToggle()
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
-		PocketMeroe.markingScroll:UpdateList(nil, var, true, "none");
+		PocketMeroe.markingScroll:UpdateList(nil, PocketMeroe.db.profile.var, true, "none");
 	end
 end
 
@@ -857,7 +641,7 @@ function PocketMeroe_CreateMenu()
 				marks:SetSize(20*9,20)
 				marks.list = {}
 				for i=1,9 do
-					marks.list[i] = marks:CreateTexture(nil,"ARTWORK")
+					marks.list[i] = marks:CreateTexture(nil,"OVERLAY")
 					marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
 					marks.list[i]:SetSize(18,18)
 					marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
@@ -921,21 +705,21 @@ function PocketMeroe_CreateMenu()
 	return optionsFrame;
 end
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
--- Huge credit to https://wago.io/p/Forsaken for most of the auto-marking code.
--- The WeakAura I modified can be found here: https://wago.io/q1YbxB5Pz
--- Even with my tweaks, full credit goes to Forsaken for their beautiful WeakAura.
+-- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
 function PocketMeroe_InitTooltips ()
 	helpers.tooltipExtend = function(tooltip, f)
 		local unitName, unitId = GameTooltip:GetUnit()
-		if UnitExists(unitId) then
+		if unitId and UnitExists(unitId) then
 			local guid = UnitGUID(unitId)
-			local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
-			local npcInfo = npcData[npc_id]
-			if (npcInfo ~= nil) then
-				if (npcInfo.untauntable) then
-					local ttIcon = "|T136122:0|t"
-					GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
+			if guid then 
+				local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
+				local npcInfo = npcData[npc_id]
+				if npcInfo then
+					if (npcInfo.untauntable) then
+						local ttIcon = "|T136122:0|t"
+						GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
+					end
 				end
 				-- tooltip:Show();
 				if (GameTooltip:GetWidth() > 700) then
@@ -946,7 +730,9 @@ function PocketMeroe_InitTooltips ()
 						helpers.markersRemoveUnit(f, unitId)
 						return
 					end
+
 					local markerType, markerBias = helpers.markersGetTypeForNpc(f, npc_id, unitName)
+					
 					if (markerType ~= nil) then
 						helpers.markersSetUnit(f, unitId, markerType, markerBias)
 					end
@@ -1000,7 +786,7 @@ function PocketMeroe_InitMarking ()
 		end
 		return false
 	end
-	helpers.markersModifierChanged = function(f)
+	helpers.markersModifierChanged = function()
 		if ClearModifier and PocketMeroe.db.profile.use_mouseover then
 			if (ClearModifier.alt and IsAltKeyDown()) then
 				helpers.clearModifierIsPressed = true
@@ -1060,7 +846,9 @@ function PocketMeroe_InitMarking ()
 			local guid = UnitGUID(unitId)
 			helpers.markersUsed[index] = true
 			helpers.markersUsedPriority[index] = priority
-			helpers.markersUsedByGUID[guid] = index
+			if guid then 
+				helpers.markersUsedByGUID[guid] = index
+			end
 --[[ 			
 	TODO: markersUsedByGUID would be shared as it updates to other players in the raid
  ]]
@@ -1204,8 +992,10 @@ function PocketMeroe_InitMarking ()
 		if UnitExists(unitId) then
 			local guid = UnitGUID(unitId);
 			local name = UnitName(unitId);
-			local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid);
-			return helpers.markersGetTypeForNpc(f, npc_id, name)
+			if guid and name then
+				local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid);
+				return helpers.markersGetTypeForNpc(f, npc_id, name)
+			end
 		end
 		return nil
 	end
@@ -1257,7 +1047,7 @@ function PocketMeroe_InitMarking ()
 	-- Set marker type for unit
 	helpers.markersClearUnit = function(unitId)
 		local guid = UnitGUID(unitId)
-		if helpers.markersUsedByGUID[guid] then
+		if guid and helpers.markersUsedByGUID[guid] then
 			--print(guid, "-", helpers.markersUsedByGUID[guid])
 			helpers.markersClearIndex(helpers.markersUsedByGUID[guid])
 			helpers.markersUsedByGUID[guid] = nil
