@@ -131,11 +131,11 @@ function PocketMeroeFrame_OnLoad()
 
 	PocketMeroe_InitTooltips()
 	PocketMeroe_InitMarking()
-	--pocketMeroe.db.RegisterCallback (pocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye")
+	--PocketMeroe.db.RegisterCallback (PocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye")
 end
 
 function PocketMeroeFrame_OnEvent(_,event)
-	--if (name ~= "pocketMeroe") then return end
+	--if (name ~= "PocketMeroe") then return end
 
 	if (event == "MODIFIER_STATE_CHANGED") then
 		if helpers.markersModifierChanged then
@@ -180,10 +180,7 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 ------ Bits and pieces for UI ------------------------------------------------------------------------------------------
 local PocketMeroe_OptionsOnClick = function(_, _, option, value, value2, mouseButton)
-	-- helpers.markersCustom = { 
-	--     "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
-	--     "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
-	-- }
+	helpers.markersCustom = PocketMeroe.db.profile.monsters or {}
 	if option == "use_mouseover" then
 		PocketMeroe.db.profile.use_mouseover = not PocketMeroe.db.profile.use_mouseover
 		return
@@ -569,7 +566,7 @@ function PocketMeroe_CreateMenu()
 			self:SetBackdropColor (unpack (backdrop_color))
 		end
 
-		if (not pocketMeroeScrollPanel) then
+		if (not PocketMeroeScrollPanel) then
 			local markListRefresh = function(self, data, offset, totalLines)
 				for i = 1, totalLines do
 					local index = i + offset
@@ -691,7 +688,7 @@ function PocketMeroe_CreateMenu()
 	TODO: add raid role organizer/selector
 ]]
 
---[[ 	local scenario = CreateFrame("frame", "pocketMeroeScenario", UIParent, "BackdropTemplate")
+--[[ 	local scenario = CreateFrame("frame", "PocketMeroeScenario", UIParent, "BackdropTemplate")
 	local scenarioDesc = DF:CreateLabel(scenario, "For |cFFFFFFFF<Serenity>|r - Mankrik, by |cFFFFFFFFmeroe|r")
 	scenarioDesc:ClearAllPoints()
 	scenarioDesc:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
@@ -754,10 +751,7 @@ function PocketMeroe_InitMarking ()
 	helpers.markersModifierIsPressed = false
 	helpers.clearModifierIsPressed = false
 	-- Group mappings for custom npcs
-	helpers.markersCustom = { 
-		"focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
-		"rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
-	}
+	helpers.markersCustom = PocketMeroe.db.profile.monsters or {}
 	-- Check if marking (and unmarking) units is enabled
 	helpers.markersEnabled = function(f)
 		if not PocketMeroe.db.profile.use_mouseover then
@@ -930,7 +924,7 @@ function PocketMeroe_InitMarking ()
 			local s = tostring(i)
 			--print("markerType:", markerType)
 			--print("markersUsedPriority[", i, "]:", helpers.markersUsedPriority[i])
-			--print("mt", pocketMeroe.db.profile.raidMarkers[markerType], "s", pocketMeroe.db.profile.raidMarkers[markerType][s])
+			--print("mt", PocketMeroe.db.profile.raidMarkers[markerType], "s", PocketMeroe.db.profile.raidMarkers[markerType][s])
 			if PocketMeroe.db.profile.raidMarkers[markerType][i] then
 				--print(i, "?", helpers.markersUsed[i] or false, helpers.markersUsedPriority[i] or 0, "vs", priority)
 				if not helpers.markersUsed[i] then
@@ -963,26 +957,8 @@ function PocketMeroe_InitMarking ()
 			return 11
 		end
 		-- Get the priority for the given marker type
-		if (markerType == "councilA") then
-			return 12
-		elseif (markerType == "councilB") then
-			return 11
-		elseif (markerType == "focus") then
-			return 10
-		elseif (markerType == "focus2") then
-			return 9
-		elseif (markerType == "primary") then
-			return 8
-		elseif (markerType == "secondary") then
-			return 7
-		elseif (markerType == "sheep") then
-			return 6
-		elseif (markerType == "banish") then
-			return 5
-		elseif (markerType == "shackle") then
-			return 4
-		elseif (markerType == "fear") then
-			return 3
+		if markerType then
+			return markerType
 		else
 			return 0
 		end
@@ -1002,35 +978,36 @@ function PocketMeroe_InitMarking ()
 	-- Set marker type for npc id
 	helpers.markersGetTypeForNpc = function(f, npcId, npcName)
 		-- Overrides via custom options
-		-- for _, npcCustom in ipairs(pocketMeroe.db.profile.raidMarkersCustom) do
-		--     local customId = npcCustom.npcId
-		--     local customName = npcCustom.npcName
-		--     if (customId == "") and (customName == npcName) then
-		--         customId = npcId
-		--     end
-		--     if (customId == npcId) then
-		--         if not npcData[npcId] then
-		--             npcData[npcId] = {
-		--                 abilities = {}
-		--             }
-		--         end
-		--         if not npcData[npcId].markerType then
-		--             npcData[npcId].markerType = {}
-		--         else
-		--             wipe(npcData[npcId].markerType)
-		--         end
-		--         for i, b in ipairs(npcCustom.markers) do
-		--             if b then
-		--                 local customMarkerType = helpers.markersCustom[i]
-		--                 tinsert(npcData[npcId].markerType, customMarkerType)
-		--             end
-		--         end
-		--     end
-		-- end
+		for _, npcCustom in ipairs(PocketMeroe.db.profile.raidMarkersCustom) do
+		    local customId = npcCustom.npcId
+		    --local customName = npcCustom.npcName
+		    --if (customId == "") and (customName == npcName) then
+			if not customId then
+		        customId = npcId
+		    end
+		    if customId and (customId == npcId) then
+		        if not npcData[npcId] then
+		            npcData[npcId] = {
+		                abilities = {}
+		            }
+		        end
+		        if not npcData[npcId][2] then -- 2 = priority
+		            npcData[npcId][2] = {}
+		        else
+		            wipe(npcData[npcId][2])
+		        end
+		        for i, b in ipairs(npcCustom[1]) do -- 1 = raid icons
+		            if b then
+		                local customMarkerType = helpers.markersCustom[i]
+		                tinsert(npcData[npcId].markerType, customMarkerType)
+		            end
+		        end
+		    end
+		end
 		-- Default npc data
 		if npcData[npcId] and npcData[npcId].markerType then
 			if (npcData[npcId].markerType == "default") then
-				npcData[npcId].markerType = { "primary", "secondary" }
+				npcData[npcId].markerType = {8,7,6,5,4,3,2,1}
 			end
 			return npcData[npcId].markerType, (npcData[npcId].markerBias or 0.0)
 		end
