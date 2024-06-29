@@ -660,17 +660,16 @@ end
 function PocketMeroe_InitTooltips ()
 	helpers.tooltipExtend = function(tooltip, f)
 		local unitName, unitId = GameTooltip:GetUnit()
-		if unitId and UnitExists(unitId) then
+		if UnitExists(unitId) then
+			local npcData = PocketMeroe.db.profile.markersCustom
 			local guid = UnitGUID(unitId)
-			if guid then 
-				local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
---[[ 				local npcInfo = PocketMeroe.db.profile.markersCustom[npc_id]
-				if npcInfo then
-					if (npcInfo.untauntable) then
-						local ttIcon = "|T136122:0|t"
-						GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
-					end
-				end ]]
+			local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
+			local npcInfo = npcData[npc_id]
+			if (npcInfo ~= nil) then
+				if (npcInfo.untauntable) then
+					local ttIcon = "|T136122:0|t"
+					GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
+				end
 				-- tooltip:Show();
 				if (GameTooltip:GetWidth() > 700) then
 					GameTooltip:SetWidth(700)
@@ -680,9 +679,7 @@ function PocketMeroe_InitTooltips ()
 						helpers.markersRemoveUnit(f, unitId)
 						return
 					end
-
 					local markerType, markerBias = helpers.markersGetTypeForNpc(f, npc_id, unitName)
-					
 					if (markerType ~= nil) then
 						helpers.markersSetUnit(f, unitId, markerType, markerBias)
 					end
@@ -697,7 +694,7 @@ end
 ]]
 function PocketMeroe_InitMarking ()
 	-- lets get that addon prefix rolling
-	
+end
 
 	-- List of all currently used markers
 	helpers.markersUsed = helpers.markersUsed or {}
@@ -706,9 +703,6 @@ function PocketMeroe_InitMarking ()
 	helpers.markersUsedReset = GetTime() + 2
 	helpers.markersModifierIsPressed = false
 	helpers.clearModifierIsPressed = false
-	-- Group mappings for custom npcs
-	helpers.markersCustom = PocketMeroe.db.profile.markersCustom or {}
-
 
 	-- Check if marking (and unmarking) units is enabled
 	helpers.markersEnabled = function(f)
@@ -939,6 +933,7 @@ function PocketMeroe_InitMarking ()
 		local npcData = PocketMeroe.db.profile.markersCustom
 		npcId = tonumber(npcId)
 		if npcId then
+			print(npcId, tostring(npcData))
 			for id, _ in pairs (npcData) do
 				print(id)
 				if  (id == npcId) then
