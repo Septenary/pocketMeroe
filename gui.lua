@@ -1,3 +1,4 @@
+local addonName, priviteTable = ...
 local Config = PocketMeroe.db.profile
 
 local DF = _G ["DetailsFramework"]

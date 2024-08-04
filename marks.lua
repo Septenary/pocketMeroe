@@ -1,6 +1,7 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
+local addonName, priviteTable = ...
 local Config = PocketMeroe.db
 
 local marks = PocketMeroe
