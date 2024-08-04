@@ -97,46 +97,47 @@ do
 	PocketMeroe.db = PocketMeroeDB or default_config -- ? idk bro
 end
 
+function PocketMeroe:MenuToggle ()
+	local config = PocketMeroe.db
+
+	local menu = meroe or PocketMeroe.ShowMenu();
+	if (menu) then
+		menu:SetShown(not menu:IsShown());
+		--needs to visually reset after closing the options menu
+--[[ 		if automarksScroll then
+			automarksScroll:UpdateList(nil, config.profile.var, true, "none");
+		end ]]
+	end
+end
+
 --[[ 
 	TODO: cooltip clears
  ]]
  ------ Init ------------------------------------------------------------------------------------------------------------
-function PocketMeroe.OnLoad(self)
-	
+function PocketMeroe:OnLoaded()
 	local function HandleSlashCommands(str)
-		PocketMeroe.MenuToggle();
+		PocketMeroe:MenuToggle();
+		--local function EasterEggKish(str) end
+		--TODO: Somethin funny lmao 
 	end
-	--local function EasterEggKish(str)
-	--[[ 
-	TODO: Somethin funny lmao 
-	]]
-	--end
-	
+
 	SLASH_Meroe1 = "/meroe";
 	SLASH_Meroe2 = "/MEROE";
-	
 	--SLASH_Kishibe1 = "/kishibe"
 
 	SlashCmdList["Meroe"] = HandleSlashCommands();
 
-		--SlashCmdList.Kishibe = EasterEggKish;		
-	local config = PocketMeroe.db
-		if (config:GetCurrentProfile() ~= "Default") then
-			config:SetProfile("Default")
-	end
-
-	config.RegisterCallback(PocketMeroe, "OnProfileChanged", "RefreshConfig")
+	--SlashCmdList.Kishibe = EasterEggKish;		
 
 	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
 	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
 
-	self:RegisterEvent("MODIFIER_STATE_CHANGED")
-	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-	--config.RegisterCallback (PocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye")
+	PocketMeroe:RegisterEvent("MODIFIER_STATE_CHANGED")
+	PocketMeroe:RegisterEvent("PLAYER_TARGET_CHANGED")
+	PocketMeroe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 end
 
-function PocketMeroe.OnEvent(_,event)
+function PocketMeroe:OnEvent(_,event)
 	if event == "ADDON_LOADED" and PocketMeroe.__name == "PocketMeroe" then
 		PocketMeroe.OnLoaded()
 	end
@@ -164,7 +165,7 @@ function PocketMeroe.OnEvent(_,event)
 	end
 end
 
-function PocketMeroe.OnInitialize()
+function PocketMeroe:OnInit()
 	PocketMeroe.InitTooltips()
 end
 
@@ -225,15 +226,4 @@ PocketMeroe.BuildModifierOptions = function(var)
     return result
 end
 
-PocketMeroe.MenuToggle = function ()
-	local config = PocketMeroe.db
 
-	local menu = meroe or PocketMeroe.ShowMenu();
-	if (menu) then
-		menu:SetShown(not menu:IsShown());
-		--needs to visually reset after closing the options menu
-		if meroe.scrolling then
-			meroe.scrolling:UpdateList(nil, config.profile.var, true, "none");
-		end
-	end
-end
