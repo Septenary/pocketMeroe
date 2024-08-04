@@ -1,14 +1,17 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local _, PocketMeroe = ...
+local _, pmInternal = ...
+local PocketMeroe = pmInternal.__addonObject
+local Config = pmInternal.db
+
 local marks = PocketMeroe
 
 function marks.InitTooltips ()
 	function marks:tooltipExtend(tooltip)
 		local unitName, unitId = GameTooltip:GetUnit()
 		if unitId and UnitExists(unitId) then
-			local npcData = PocketMeroe.db.profile.markersCustom
+			local npcData = Config.profile.markersCustom
 			local guid = UnitGUID(unitId)
             if not guid then return end
 			local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
@@ -66,16 +69,16 @@ marks.clearModifierIsPressed = false
 
 -- check GUI options and keyboard state
 marks.markersEnabled = function()
-	local ClearModifier = PocketMeroe.db.ClearModifier
-	local MarkingModifier = PocketMeroe.db.MarkingModifier
+	local ClearModifier = Config.ClearModifier
+	local MarkingModifier = Config.MarkingModifier
 
-	if not PocketMeroe.db.profile.use_mouseover then
+	if not Config.profile.use_mouseover then
 		return false
 	end
 	if not MarkingModifier then
 		return false
 	end
-	if (PocketMeroe.db.profile.require_leader and not UnitIsGroupLeader("player")) then
+	if (Config.profile.require_leader and not UnitIsGroupLeader("player")) then
 		-- doesn't do marking if not player lead and "not lead" is toggled in custom options
 		return false
 	end
@@ -89,10 +92,10 @@ end
 
 -- check specifics for Clearing or Marking
 marks.markersModifierChanged = function()
-	local ClearModifier = PocketMeroe.db.ClearModifier
-	local MarkingModifier = PocketMeroe.db.MarkingModifier
+	local ClearModifier = Config.ClearModifier
+	local MarkingModifier = Config.MarkingModifier
 
-	if ClearModifier and PocketMeroe.db.profile.use_mouseover then
+	if ClearModifier and Config.profile.use_mouseover then
 		if (ClearModifier.alt and IsAltKeyDown())
 		or (ClearModifier.ctrl and IsControlKeyDown())
 		or (ClearModifier.shift and IsShiftKeyDown()) then
@@ -102,7 +105,7 @@ marks.markersModifierChanged = function()
 		end
 		return -- Blocks a unit from repeatedly being marked and unmarked quickly.
 	end
-	if MarkingModifier and PocketMeroe.db.profile.use_mouseover then
+	if MarkingModifier and Config.profile.use_mouseover then
 		if (MarkingModifier.alt and IsAltKeyDown())
 		or (MarkingModifier.ctrl and IsControlKeyDown())
 		or (MarkingModifier.shift and IsShiftKeyDown()) then
@@ -222,7 +225,7 @@ marks.markersGetFreeIndex = function(markerType, priority, markerCurrent)
 		--return nil
 	end
 	-- Get the first available marker from the given type
-	if not markerType or not PocketMeroe.db.profile.raidMarkers[markerType] then
+	if not markerType or not Config.profile.raidMarkers[markerType] then
 		return nil
 	end
 	for i = 8, 1, -1 do
@@ -232,8 +235,8 @@ marks.markersGetFreeIndex = function(markerType, priority, markerCurrent)
 		local s = tostring(i)
 		--print("markerType:", markerType)
 		--print("markersUsedPriority[", i, "]:", marks.markersUsedPriority[i])
-		--print("mt", PocketMeroe.db.profile.raidMarkers[markerType], "s", PocketMeroe.db.profile.raidMarkers[markerType][s])
-		if PocketMeroe.db.profile.raidMarkers[markerType][i] then
+		--print("mt", Config.profile.raidMarkers[markerType], "s", Config.profile.raidMarkers[markerType][s])
+		if Config.profile.raidMarkers[markerType][i] then
 			--print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
 			if not marks.markersUsed[i] then
 				return i
@@ -278,7 +281,7 @@ end
 -- defaults to {8,7,6,5,4,3,2,1} if mob is in markersCustom
 marks.markersGetTypeForNpc = function(npcId, npcName)
 	-- Overrides via custom options
-	local markersCustom = PocketMeroe.db.profile.markersCustom
+	local markersCustom = Config.profile.markersCustom
 	npcId = tonumber(npcId)
 	if npcId then
 		for id, _ in pairs (markersCustom) do

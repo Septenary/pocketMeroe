@@ -1,9 +1,10 @@
-local _, PocketMeroe = ...
+local _, pmInternal = ...
+local PocketMeroe = pmInternal.__addonObject
+local Config = pmInternal.db
 
 local DF = _G ["DetailsFramework"]
-local PocketMeroe = _G ["PocketMeroe"]
-local ClearModifier = PocketMeroe.db.ClearModifier
-local MarkingModifier = PocketMeroe.db.MarkingModifier
+local ClearModifier = Config.ClearModifier
+local MarkingModifier = Config.MarkingModifier
 
 local BuildRaidOptions = function(var)
     local raids = {
@@ -33,7 +34,7 @@ end
 
 
 function PocketMeroe.ShowMenu()
-	-- toggle configuration menu
+	-- toggle scrollConfiguration menu
 	if (PocketMeroeMenu) then
 		PocketMeroeMenu:Show()
 		return
@@ -191,7 +192,7 @@ function PocketMeroe.ShowMenu()
 
 	-- get each tab's frame and create a local variable to cache it
 	local generalSettingsFrame = tabContainer.AllFrames[1]
-	local marksConfigFrame = tabContainer.AllFrames[2]
+	local marksscrollConfigFrame = tabContainer.AllFrames[2]
 	local tabFrameHeight = generalSettingsFrame:GetHeight()
 	--- General settings
 	do
@@ -205,10 +206,10 @@ function PocketMeroe.ShowMenu()
 			{
 				type = "toggle",
 				get = function()
-					return PocketMeroe.db.profile.use_mouseover
+					return Config.profile.use_mouseover
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("use_mouseover", PocketMeroe.db.profile.use_mouseover)
+					PocketMeroe.SetSetting("use_mouseover", Config.profile.use_mouseover)
 				end,
 				name = "Mouseover",
 				desc = "Allow marking by mousing over mobs.",
@@ -216,10 +217,10 @@ function PocketMeroe.ShowMenu()
 			{
 				type = "toggle",
 				get = function()
-					return PocketMeroe.db.profile.require_leader
+					return Config.profile.require_leader
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("require_leader", PocketMeroe.db.profile.require_leader)
+					PocketMeroe.SetSetting("require_leader", Config.profile.require_leader)
 				end,
 				name = "Require Leader",
 				desc = "If toggled then you must be the leader to mark mobs.",
@@ -250,7 +251,7 @@ function PocketMeroe.ShowMenu()
 
 	--- Marking setings
 	do
-		-- local markers = PocketMeroe.db.profile.raidMarkers
+		-- local markers = Config.profile.raidMarkers
 
 		local optionsTable = {
 			always_boxfirst = false,
@@ -259,7 +260,7 @@ function PocketMeroe.ShowMenu()
 				get = function() 
 					return "none" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
-				values = function () return BuildRaidOptions(PocketMeroe.db.profile.var) end,
+				values = function () return BuildRaidOptions(Config.profile.var) end,
 				name = "Raid:",
 				--desc = "",
 
@@ -267,7 +268,7 @@ function PocketMeroe.ShowMenu()
 		}
 		--optionsTable.always_boxfirst = true
 
-		local config = {
+		local scrollConfig = {
 			scroll_width = 510,
 			scroll_height = 174,
 			scroll_line_height = 18,
@@ -278,7 +279,7 @@ function PocketMeroe.ShowMenu()
 		local backdrop_color = {.8, .8, .8, 0.2}
 		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
 
-		DF:BuildMenu(marksConfigFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+		DF:BuildMenu(marksscrollConfigFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
 		local line_onenter = function (self)
 			self:SetBackdropColor (unpack (backdrop_color_on_enter))
 		end
@@ -309,20 +310,20 @@ function PocketMeroe.ShowMenu()
 			end
 
 			--who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
-			PocketMeroe.markingScroll = DF:CreateScrollBox (marksConfigFrame, "$parentmarkingScroll", markListRefresh, {}, config.scroll_width, config.scroll_height, config.scroll_lines, config.scroll_line_height)
+			PocketMeroe.markingScroll = DF:CreateScrollBox (marksscrollConfigFrame, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
 			local markingScroll = PocketMeroe.markingScroll
 			DF:ReskinSlider (markingScroll)
-			markingScroll:SetPoint("TOPLEFT", marksConfigFrame, "TOPLEFT", 5, -140)
+			markingScroll:SetPoint("TOPLEFT", marksscrollConfigFrame, "TOPLEFT", 5, -140)
 
 
 			--create the scroll widgets
 			local createLine = function(self, index)
 				local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
-				line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(config.scroll_line_height+1)) - 1)
-				line:SetSize(config.scroll_width - 2, config.scroll_line_height)
+				line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(scrollConfig.scroll_line_height+1)) - 1)
+				line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
 
 				line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-				line:SetBackdropColor(unpack (config.backdrop_color))
+				line:SetBackdropColor(unpack (scrollConfig.backdrop_color))
 
 				local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
 				local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
@@ -341,7 +342,7 @@ function PocketMeroe.ShowMenu()
 			end
 
 			--create the scroll widgets
-			for i = 1, config.scroll_lines do
+			for i = 1, scrollConfig.scroll_lines do
 				local line = markingScroll:CreateLine (createLine, i)
 				line:SetPoint("TOP",0,-35-(i-1)*25)
 				line:SetPoint("LEFT",5,0)
@@ -374,7 +375,7 @@ function PocketMeroe.ShowMenu()
 			--this build a list of units and send it to the scroll
 			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
 				local data = {}
-				local npcData = PocketMeroe.db.profile.markersCustom
+				local npcData = Config.profile.markersCustom
 				for id, _ in pairs (npcData) do
 					-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
 					-- i really sure hope the same mob IDs dont appear in multiple instances.
