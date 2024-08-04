@@ -2,8 +2,8 @@
 	<Script file="pocketMeroe.lua"/>
 	<Frame name="PocketMeroeFrame" parent="UIParent" hidden="true">
 		<Scripts>
-			<OnLoad>PocketMeroeFrame_OnLoad();</OnLoad>
-			<OnEvent>PocketMeroeFrame_OnEvent(self, event,...);</OnEvent>
+			<OnLoad>PocketMeroe.OnLoad(self);</OnLoad>
+			<OnEvent>PocketMeroe.OnEvent(self, event,...);</OnEvent>
 		</Scripts>
 	</Frame>
 </Ui>

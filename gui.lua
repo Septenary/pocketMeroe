@@ -1,6 +1,5 @@
 local DF = _G ["DetailsFramework"]
-
-
+local PocketMeroe = _G ["PocketMeroe"]
 local ClearModifier = PocketMeroe.db.ClearModifier
 local MarkingModifier = PocketMeroe.db.MarkingModifier
 
@@ -31,10 +30,10 @@ local BuildRaidOptions = function(var)
 end
 
 
-function PocketMeroe_ShowMenu()
+function PocketMeroe.ShowMenu()
 	-- toggle configuration menu
-	if (meroeOptions) then
-		meroeOptions:Show()
+	if (PocketMeroeMenu) then
+		PocketMeroeMenu:Show()
 		return
 	end
 
@@ -53,7 +52,7 @@ function PocketMeroe_ShowMenu()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroeOptions")
+	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "PocketMeroeMenu")
 	--local meroeOptions = DF:NewPanel(UIParent, _, "meroeOptions", _, 897, 592)
 
 	optionsFrame.Frame = optionsFrame
@@ -237,7 +236,7 @@ function PocketMeroe_ShowMenu()
 				get = function() 
 					return ClearModifier.none and "none" or ClearModifier.alt and "alt" or ClearModifier.ctrl and "ctrl" or ClearModifier.shift and "shift"
 				end,
-				values = function () return BuildModifierOptions("clear_modifier") end,
+				values = function () return PocketMeroe.BuildModifierOptions("clear_modifier") end,
 				name = "Clear Modifier",
 				desc = "Require this modifier key to be held down to clear existing marks. ",
 			},

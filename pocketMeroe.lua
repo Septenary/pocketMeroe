@@ -15,9 +15,12 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 ------------------------------------------------------------------------------------------------------------------------
 local version = "v0.0.5"
 local config = {};
-local PocketMeroeFrame = CreateFrame("Frame");
 -- Details!: Framework
 local DF = _G ["DetailsFramework"]
+if (not DF) then
+	print ("|cFFFFAA00Details framework not found, if you just installed or updated PocketMeroe, please restart your client.|r")
+	return
+end
 -- Ace3BasedConfigTable
 local default_config = {
 	profile = {
@@ -88,12 +91,13 @@ local default_config = {
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
 	},
 };
+_G ["PocketMeroe"] = DF:CreateNewAddOn ("PocketMeroe", "PocketMeroeDB", default_config) -- <==
 
 --[[ 
 	TODO: cooltip clears
  ]]
  ------ Init ------------------------------------------------------------------------------------------------------------
-function PocketMeroeFrame_OnLoad()
+function PocketMeroe.OnLoaded(self)
 	local function HandleSlashCommands(str)
 		PocketMeroe.MenuToggle();
 	end
@@ -117,18 +121,17 @@ function PocketMeroeFrame_OnLoad()
 	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
 	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
 
-	PocketMeroeFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
-	PocketMeroeFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-	PocketMeroeFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-	PocketMeroeFrame:SetScript("OnEvent", PocketMeroeFrame_OnEvent);
-
-	PocketMeroe.InitTooltips()
+	self:RegisterEvent("MODIFIER_STATE_CHANGED")
+	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 	--PocketMeroe.db.RegisterCallback (PocketMeroe, "OnDatabaseShutdown", "CleanUpJustBeforeGoodbye")
 end
 
-function PocketMeroeFrame_OnEvent(_,event)
+function PocketMeroe.OnEvent(_,event)
+	if event == "ADDON_LOADED" and PocketMeroe.__name == "PocketMeroe" then
+		PocketMeroe.OnLoaded()
+	end
 	--if (name ~= "PocketMeroe") then return end
-
 	if (event == "MODIFIER_STATE_CHANGED") then
 		if PocketMeroe.markersModifierChanged then
 			PocketMeroe.markersModifierChanged()
@@ -152,17 +155,10 @@ function PocketMeroeFrame_OnEvent(_,event)
 	end
 end
 
-PocketMeroeFrame:RegisterEvent("ADDON_LOADED");
-PocketMeroeFrame:SetScript("OnEvent", PocketMeroeFrame_OnLoad);
-_G["PocketMeroe"] = DF:CreateAddOn ("PocketMeroe", "PocketMeroeDB", default_config) -- <==
-
-function PocketMeroe_LoadDF()
-	if (not DF) then
-		print ("|cFFFFAA00pocketMeroe: Details!: Framework not found, if you just installed or updated pocketMeroe, please restart your client.|r")
-		return
-	end
-	-- (Details!: Framework) create the addon object
+function PocketMeroe.OnInitialize()
+	PocketMeroe.InitTooltips()
 end
+
 ------ Database Loads in here ------------------------------------------------------------------------------------------
 function PocketMeroe:RefreshConfig()
 	--
@@ -220,7 +216,7 @@ PocketMeroe.BuildModifierOptions = function(var)
 end
 
 PocketMeroe.MenuToggle = function ()
-	local menu = meroeOptions or PocketMeroe_ShowMenu();
+	local menu = PocketMeroeMenu or PocketMeroe.ShowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu

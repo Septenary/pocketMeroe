@@ -1,6 +1,7 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
+local PocketMeroe = _G ["PocketMeroe"]
 local marks = PocketMeroe
 
 function marks.InitTooltips ()
@@ -66,6 +67,8 @@ marks.clearModifierIsPressed = false
 -- check GUI options and keyboard state
 marks.markersEnabled = function()
 	local ClearModifier = PocketMeroe.db.ClearModifier
+	local MarkingModifier = PocketMeroe.db.MarkingModifier
+
 	if not PocketMeroe.db.profile.use_mouseover then
 		return false
 	end
