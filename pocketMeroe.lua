@@ -13,7 +13,6 @@ Method Raid Tools
 https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
-local _, pmInternal = ...
 
 do
 	local version = "v0.0.5"
@@ -95,16 +94,15 @@ do
 		},
 	};
 	PocketMeroe = DF:CreateNewAddOn ("PocketMeroeAddon", "PocketMeroeDB", default_config) -- <==
-	pmInternal.__addonObject = PocketMeroe.__frame.__addonObject
-	pmInternal.db = PocketMeroeDB
+	PocketMeroe.db = PocketMeroeDB or default_config -- ? idk bro
 end
 
 --[[ 
 	TODO: cooltip clears
  ]]
  ------ Init ------------------------------------------------------------------------------------------------------------
-function PocketMeroe.OnLoaded(self)
-	local config = pmInternal.db
+function PocketMeroe.OnLoad(self)
+	local config = PocketMeroe.db
 
 	local function HandleSlashCommands(str)
 		PocketMeroe.MenuToggle();
@@ -176,14 +174,14 @@ end
 ------ Bits and pieces for UI ------------------------------------------------------------------------------------------
 PocketMeroe.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	if option == "use_mouseover" then
-		pmInternal.db.profile.use_mouseover = not pmInternal.db.profile.use_mouseover
+		PocketMeroe.db.profile.use_mouseover = not PocketMeroe.db.profile.use_mouseover
 		return
 	end
 	if option == "require_leader" then
-		pmInternal.db.profile.require_leader = not pmInternal.db.profile.require_leader
+		PocketMeroe.db.profile.require_leader = not PocketMeroe.db.profile.require_leader
 		return
 	end
-	for i, mark in pairs(pmInternal.db.profile.raidMarkers) do
+	for i, mark in pairs(PocketMeroe.db.profile.raidMarkers) do
 		if option == i then
 			--print(option, value)
 			mark[value] = not mark[value]
@@ -197,7 +195,7 @@ PocketMeroe.SetSetting = function(...)
 end
 
 PocketMeroe.SetModifier = function(_, var, value, key)
-	local config = pmInternal.db
+	local config = PocketMeroe.db
 	if config.profile[var] then
 		config.profile [var].none = false
 		config.profile [var].alt = false
@@ -225,7 +223,7 @@ PocketMeroe.BuildModifierOptions = function(var)
 end
 
 PocketMeroe.MenuToggle = function ()
-	local config = pmInternal.db
+	local config = PocketMeroe.db
 
 	local menu = PocketMeroeMenu or PocketMeroe.ShowMenu();
 	if (menu) then

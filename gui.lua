@@ -1,6 +1,4 @@
-local _, pmInternal = ...
-local PocketMeroe = pmInternal.__addonObject
-local Config = pmInternal.db
+local Config = PocketMeroe.db
 
 local DF = _G ["DetailsFramework"]
 local ClearModifier = Config.ClearModifier
@@ -33,7 +31,7 @@ local BuildRaidOptions = function(var)
 end
 
 
-function PocketMeroe.ShowMenu()
+PocketMeroe.ShowMenu = function()
 	-- toggle scrollConfiguration menu
 	if (PocketMeroeMenu) then
 		PocketMeroeMenu:Show()
@@ -310,7 +308,7 @@ function PocketMeroe.ShowMenu()
 			end
 
 			--who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
-			PocketMeroe.markingScroll = DF:CreateScrollBox (marksscrollConfigFrame, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
+			marksscrollConfigFrame.markingScroll = DF:CreateScrollBox (marksscrollConfigFrame, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
 			local markingScroll = PocketMeroe.markingScroll
 			DF:ReskinSlider (markingScroll)
 			markingScroll:SetPoint("TOPLEFT", marksscrollConfigFrame, "TOPLEFT", 5, -140)

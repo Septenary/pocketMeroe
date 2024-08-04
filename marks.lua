@@ -1,9 +1,7 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local _, pmInternal = ...
-local PocketMeroe = pmInternal.__addonObject
-local Config = pmInternal.db
+local Config = PocketMeroe.db
 
 local marks = PocketMeroe
 
