@@ -1,7 +1,7 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local PocketMeroe = _G ["PocketMeroe"]
+local _, PocketMeroe = ...
 local marks = PocketMeroe
 
 function marks.InitTooltips ()

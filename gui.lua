@@ -1,3 +1,5 @@
+local _, PocketMeroe = ...
+
 local DF = _G ["DetailsFramework"]
 local PocketMeroe = _G ["PocketMeroe"]
 local ClearModifier = PocketMeroe.db.ClearModifier

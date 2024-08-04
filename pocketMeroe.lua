@@ -91,7 +91,7 @@ local default_config = {
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
 	},
 };
-_G ["PocketMeroe"] = DF:CreateNewAddOn ("PocketMeroe", "PocketMeroeDB", default_config) -- <==
+PocketMeroe = DF:CreateNewAddOn ("PocketMeroe", "PocketMeroeDB", default_config) -- <==
 
 --[[ 
 	TODO: cooltip clears
