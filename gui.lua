@@ -1,8 +1,8 @@
-local Config = PocketMeroe.db
+local Config = PocketMeroe.db.profile
 
 local DF = _G ["DetailsFramework"]
-local ClearModifier = Config.ClearModifier
-local MarkingModifier = Config.MarkingModifier
+local ClearModifier = Config.clear_modifier
+local MarkingModifier = Config.marking_modifier
 
 local ScrollBox= {}
 
@@ -114,7 +114,7 @@ end
 
 function ScrollBox:UpdateList(_, _, option, value, value2, mouseButton)
     local data = {}
-    local npcData = Config.profile.markersCustom
+    local npcData = Config.markersCustom
     for id, _ in pairs (npcData) do
         -- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
         -- i really sure hope the same mob IDs dont appear in multiple instances.
@@ -152,7 +152,7 @@ PocketMeroe.ShowMenu = function()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroe")
+	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroe.Options")
 
     local statusBar = CreateFrame("frame", "$parent.Status", optionsFrame, "BackdropTemplate")
     statusBar:SetHeight(20)
@@ -282,10 +282,10 @@ PocketMeroe.ShowMenu = function()
 			{
 				type = "toggle",
 				get = function()
-					return Config.profile.use_mouseover
+					return Config.use_mouseover
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("use_mouseover", Config.profile.use_mouseover)
+					PocketMeroe.SetSetting("use_mouseover", Config.use_mouseover)
 				end,
 				name = "Mouseover",
 				desc = "Allow marking by mousing over mobs.",
@@ -293,10 +293,10 @@ PocketMeroe.ShowMenu = function()
 			{
 				type = "toggle",
 				get = function()
-					return Config.profile.require_leader
+					return Config.require_leader
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("require_leader", Config.profile.require_leader)
+					PocketMeroe.SetSetting("require_leader", Config.require_leader)
 				end,
 				name = "Require Leader",
 				desc = "If toggled then you must be the leader to mark mobs.",
@@ -327,7 +327,7 @@ PocketMeroe.ShowMenu = function()
 
 	--- meroe.automarks
 	do
-		-- local markers = Config.profile.raidMarkers
+		-- local markers = Config.raidMarkers
 
 		local optionsTable = {
 			always_boxfirst = false,
@@ -336,7 +336,7 @@ PocketMeroe.ShowMenu = function()
 				get = function() 
 					return "none" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
-				values = function () return BuildRaidOptions(Config.profile.var) end,
+				values = function () return BuildRaidOptions(Config.var) end,
 				name = "Raid:",
 				--desc = "",
 

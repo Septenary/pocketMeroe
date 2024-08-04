@@ -6,14 +6,10 @@ pocketMeroe was made by meroe for <Serenity> - Mankrik.
 Details!: Framework library (LGPLv3)
 https://www.curseforge.com/wow/addons/libdframework Terciob,
 
-WorldQuestTracker
-https://www.curseforge.com/wow/addons/world-quest-tracker Terciob,
-
 Method Raid Tools
 https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
-
 do
 	local version = "v0.0.5"
 	local config = {};
@@ -95,6 +91,7 @@ do
 	};
 	PocketMeroe = DF:CreateNewAddOn ("PocketMeroeAddon", "PocketMeroeDB", default_config) -- <==
 	PocketMeroe.db = PocketMeroeDB or default_config -- ? idk bro
+
 end
 
 function PocketMeroe:MenuToggle ()
@@ -110,36 +107,9 @@ function PocketMeroe:MenuToggle ()
 	end
 end
 
---[[ 
-	TODO: cooltip clears
- ]]
- ------ Init ------------------------------------------------------------------------------------------------------------
-function PocketMeroe:OnLoaded()
-	local function HandleSlashCommands(str)
-		PocketMeroe:MenuToggle();
-		--local function EasterEggKish(str) end
-		--TODO: Somethin funny lmao 
-	end
-
-	SLASH_Meroe1 = "/meroe";
-	SLASH_Meroe2 = "/MEROE";
-	--SLASH_Kishibe1 = "/kishibe"
-
-	SlashCmdList["Meroe"] = HandleSlashCommands();
-
-	--SlashCmdList.Kishibe = EasterEggKish;		
-
-	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
-	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
-
-	PocketMeroe:RegisterEvent("MODIFIER_STATE_CHANGED")
-	PocketMeroe:RegisterEvent("PLAYER_TARGET_CHANGED")
-	PocketMeroe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-end
-
-function PocketMeroe:OnEvent(_,event)
-	if event == "ADDON_LOADED" and PocketMeroe.__name == "PocketMeroe" then
-		PocketMeroe.OnLoaded()
+function PocketMeroe.OnEvent(_,event)
+	if event == "ADDON_LOADED" then
+		PocketMeroe:OnLoaded()
 	end
 	--if (name ~= "PocketMeroe") then return end
 	if (event == "MODIFIER_STATE_CHANGED") then
@@ -164,6 +134,33 @@ function PocketMeroe:OnEvent(_,event)
 		end
 	end
 end
+
+function PocketMeroe:OnLoaded()
+	local function HandleSlashCommands(str)
+		PocketMeroe:MenuToggle();
+		--local function EasterEggKish(str) end
+		--TODO: Somethin funny lmao 
+	end
+
+	SLASH_Meroe1 = "/meroe";
+	SLASH_Meroe2 = "/MEROE";
+	--SLASH_Kishibe1 = "/kishibe"
+
+	SlashCmdList["Meroe"] = HandleSlashCommands();
+
+	--SlashCmdList.Kishibe = EasterEggKish;		
+
+	ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
+	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
+
+	local PocketMeroeEvents = CreateFrame("Frame")
+	PocketMeroeEvents:RegisterEvent("MODIFIER_STATE_CHANGED")
+	PocketMeroeEvents:RegisterEvent("PLAYER_TARGET_CHANGED")
+	PocketMeroeEvents:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+	PocketMeroeEvents:SetScript("OnEvent", PocketMeroe.OnEvent)
+end
+
+
 
 function PocketMeroe:OnInit()
 	PocketMeroe.InitTooltips()
