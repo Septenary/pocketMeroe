@@ -102,24 +102,27 @@ end
  ]]
  ------ Init ------------------------------------------------------------------------------------------------------------
 function PocketMeroe.OnLoad(self)
-	local config = PocketMeroe.db
-
+	
 	local function HandleSlashCommands(str)
 		PocketMeroe.MenuToggle();
 	end
 	--local function EasterEggKish(str)
 	--[[ 
-		TODO: Somethin funny lmao 
+	TODO: Somethin funny lmao 
 	]]
 	--end
+	
 	SLASH_Meroe1 = "/meroe";
 	SLASH_Meroe2 = "/MEROE";
-
+	
 	--SLASH_Kishibe1 = "/kishibe"
-	SlashCmdList["Meroe"] = HandleSlashCommands;
-	--SlashCmdList.Kishibe = EasterEggKish;		
-	if (config:GetCurrentProfile() ~= "Default") then
-		config:SetProfile("Default")
+
+	SlashCmdList["Meroe"] = HandleSlashCommands();
+
+		--SlashCmdList.Kishibe = EasterEggKish;		
+	local config = PocketMeroe.db
+		if (config:GetCurrentProfile() ~= "Default") then
+			config:SetProfile("Default")
 	end
 
 	config.RegisterCallback(PocketMeroe, "OnProfileChanged", "RefreshConfig")
@@ -225,12 +228,12 @@ end
 PocketMeroe.MenuToggle = function ()
 	local config = PocketMeroe.db
 
-	local menu = PocketMeroeMenu or PocketMeroe.ShowMenu();
+	local menu = meroe or PocketMeroe.ShowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
-		if PocketMeroe.markingScroll then 
-			PocketMeroe.markingScroll:UpdateList(nil, config.profile.var, true, "none");
+		if meroe.scrolling then
+			meroe.scrolling:UpdateList(nil, config.profile.var, true, "none");
 		end
 	end
 end

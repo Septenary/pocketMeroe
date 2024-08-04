@@ -4,6 +4,8 @@ local DF = _G ["DetailsFramework"]
 local ClearModifier = Config.ClearModifier
 local MarkingModifier = Config.MarkingModifier
 
+local scrollBox= {}
+
 local BuildRaidOptions = function(var)
     local raids = {
         { label = "All",       value = "none" },
@@ -22,7 +24,7 @@ local BuildRaidOptions = function(var)
             label = raid.label,
             value = raid.value,
             onclick = function()
-                PocketMeroe.markingScroll:UpdateList(nil, var, true, raid.value)
+                scrollBox:UpdateList(nil, var, true, raid.value)
             end,
         })
     end
@@ -30,34 +32,137 @@ local BuildRaidOptions = function(var)
     return result
 end
 
-local gui = {}
+function scrollBox.Create(parent)
+    local scrollConfig = {
+        scroll_width = 510,
+        scroll_height = 174,
+        scroll_line_height = 18,
+        scroll_lines = 9,
+        backdrop_color = {.4, .4, .4, .2},
+        backdrop_color_highlight = {.4, .4, .4, .6},
+    }
+    local backdrop_color = {.8, .8, .8, 0.2}
+    local backdrop_color_on_enter = {.8, .8, .8, 0.4}
 
-function gui:CreateStatusBar(parentFrame)
-    local statusBar = CreateFrame("frame", "$parentStatusBar", parentFrame, "BackdropTemplate")
-	statusBar:SetHeight(20)
-	statusBar:SetAlpha(0.9)
-	statusBar:SetFrameLevel(parentFrame:GetFrameLevel()+2)
-	statusBar:ClearAllPoints()
-	statusBar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMLEFT")
-	statusBar:SetPoint("BOTTOMRIGHT", parentFrame, "BOTTOMRIGHT")
 
+    local line_onenter = function (self)
+        self:SetBackdropColor (unpack (backdrop_color_on_enter))
+    end
+
+    local line_onleave = function (self)
+        self:SetBackdropColor (unpack (backdrop_color))
+    end
+
+    if (not false) then
+        local markListRefresh = function(self, data, offset, totalLines)
+            for i = 1, totalLines do
+                local index = i + offset
+                local data = data[index]
+
+                if (data) then
+                    local line = self:GetLine(i)
+                    line:SetBackdropColor (unpack (backdrop_color))
+                    line:SetScript ("OnEnter", line_onenter)
+                    line:SetScript ("OnLeave", line_onleave)
+                    if (line) then
+                        local name, markerType = unpack(data)
+                        --print(index, name, markerType)
+                        line.name:SetText(name)
+                        line.markerType:SetText(tostring(markerType))
+                    end
+                end
+            end
+        end
+
+        --who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
+        local scrollBox = DF:CreateScrollBox (parent, "$parent.Scrolling", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
+        DF:ReskinSlider (meroe.scrolling)
+        scrollBox.SetPoint("TOPLEFT", parent, "TOPLEFT", 5, -140)
+
+
+        --create the scroll widgets
+        local createLine = function(self, index)
+            local line = CreateFrame ("button", "$parent.Line" .. index, self, "BackdropTemplate")
+            line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(scrollConfig.scroll_line_height+1)) - 1)
+            line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+
+            line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
+            line:SetBackdropColor(unpack (scrollConfig.backdrop_color))
+
+            local name = line:CreateFontString ("$parent.Name", "OVERLAY", "GameFontNormal")
+            local markerType = line:CreateFontString ("$parent.markerType", "OVERLAY", "GameFontNormal")
+
+            DF:SetFontSize (name, 10)
+            DF:SetFontSize (markerType, 10)
+
+            name:SetPoint("LEFT", line, "LEFT", 4, 0)
+            markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
+
+            line.name = name
+            line.markerType = markerType
+            return line
+        end
+
+        --create the scroll widgets
+        for i = 1, scrollConfig.scroll_lines do
+            local line = scrollBox:CreateLine (createLine, i)
+            line:SetPoint("TOP",0,-35-(i-1)*25)
+            line:SetPoint("LEFT",5,0)
+            line:SetPoint("RIGHT",-25,0)
+            line:SetHeight(25)
+            line._i = i
+
+            local marks = CreateFrame("Frame",nil,line)
+            marks:EnableMouse(true)
+            marks.Background = marks:CreateTexture(nil,"BACKGROUND")
+            marks.Background:SetColorTexture(0,0,0,.3)
+            marks.Background:SetPoint("TOPLEFT")
+            marks.Background:SetPoint("BOTTOMRIGHT")
+            marks:SetPoint("CENTER",18,0)
+            marks:SetSize(20*9,20)
+            marks.list = {}
+            for i=1,9 do
+                marks.list[i] = marks:CreateTexture(nil,"OVERLAY")
+                marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
+                marks.list[i]:SetSize(18,18)
+                marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+                if i == 9 then
+                    marks.list[i]:SetTexCoord(0.125,0.1875,0.5,0.625)
+                    marks.list[i]:SetVertexColor(1,1,1,0.7)			
+                end
+            end
+            line.marks = marks
+        end
+
+        --this build a list of units and send it to the scroll
+        return scrollBox
+    end
 end
 
-function gui:CreateAuthorBar(parentFrame)
-	local authorInfo = DF:CreateLabel(parentFrame, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
-	authorInfo:SetPoint("left", parentFrame, "left", 6, 0)
-	authorInfo:SetAlpha(.6)
-	authorInfo.textcolor = "silver"
-
-	parentFrame.authorInfo = authorInfo
-	DF:ApplyStandardBackdrop(parentFrame)
+function scrollBox:UpdateList(_, _, option, value, value2, mouseButton)
+    local data = {}
+    local npcData = Config.profile.markersCustom
+    for id, _ in pairs (npcData) do
+        -- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+        -- i really sure hope the same mob IDs dont appear in multiple instances.
+        -- i think we're lucky enough that raid instances only contain monsters unique to that instance
+        if (npcData[id][3] == value or value =="none" or not value) then
+            local name = npcData[id][5] or id
+            local markerType = ""
+            if type(npcData[id][2])~="table" then markerType = "#".. npcData[id][2] else markerType = "#10" end
+            tinsert (data, {name, markerType})
+        end
+    end
+    scrollBox:SetData (data)
+    scrollBox:Refresh()
 end
-
+scrollBox:UpdateList()
+scrollBox:Show()
 
 PocketMeroe.ShowMenu = function()
 	-- toggle scrollConfiguration menu
-	if (PocketMeroeMenu) then
-		PocketMeroeMenu:Show()
+	if (meroe) then
+		meroe:Show()
 		return
 	end
 
@@ -68,7 +173,7 @@ PocketMeroe.ShowMenu = function()
 	local options_slider_template = DF:GetTemplate("slider", "OPTIONS_SLIDER_TEMPLATE")
 	local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
 	local options_button_template_selected = DF.table.copy({}, DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
-	
+
 	--options
 	local selectedTabIndicatorDefaultColor = {.4, .4, .4}
 	local selectedTabIndicatorColor = {1, 1, 0}
@@ -78,12 +183,25 @@ PocketMeroe.ShowMenu = function()
 	--build the options window
 	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroe")
 
-    local status = gui:CreateStatusBar(optionsFrame)
-    local author = gui:CreateAuthorBar(status)
+    local statusBar = CreateFrame("frame", "$parent.Status", optionsFrame, "BackdropTemplate")
+    statusBar:SetHeight(20)
+    statusBar:SetAlpha(0.9)
+    statusBar:SetFrameLevel(optionsFrame:GetFrameLevel()+2)
+    statusBar:ClearAllPoints()
+    statusBar:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
+    statusBar:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
 
-	local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
-	bottomGradient:SetAllPoints(optionsFrame, 1)
-	bottomGradient:SetPoint("bottom-top", status)
+    local authorInfo = DF:CreateLabel(statusBar, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
+    authorInfo:SetPoint("left", statusBar, "left", 6, 0)
+    authorInfo:SetAlpha(.6)
+    authorInfo.textcolor = "silver"
+
+    statusBar.authorInfo = authorInfo
+    DF:ApplyStandardBackdrop(statusBar)
+
+    local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
+    bottomGradient:SetAllPoints(optionsFrame, 1)
+    bottomGradient:SetPoint("bottom-top", statusBar)
 
 	local tabList = {
 		{name = ".general",	text = "General"},
@@ -116,7 +234,7 @@ PocketMeroe.ShowMenu = function()
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "tabContainer", tabList, optionsTable, hookList)
+	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "$parent.tabContainer", tabList, optionsTable, hookList)
 												
 	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
 	tabContainer:SetSize(optionsFrame:GetSize())
@@ -236,7 +354,7 @@ PocketMeroe.ShowMenu = function()
 
 	end
 
-	--- meroe.marking
+	--- meroe.automarks
 	do
 		-- local markers = Config.profile.raidMarkers
 
@@ -254,134 +372,9 @@ PocketMeroe.ShowMenu = function()
 			},
 		}
 		--optionsTable.always_boxfirst = true
-
-		local scrollConfig = {
-			scroll_width = 510,
-			scroll_height = 174,
-			scroll_line_height = 18,
-			scroll_lines = 9,
-			backdrop_color = {.4, .4, .4, .2},
-			backdrop_color_highlight = {.4, .4, .4, .6},
-		}
-		local backdrop_color = {.8, .8, .8, 0.2}
-		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
-
 		DF:BuildMenu(automarks, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
-		
-        local line_onenter = function (self)
-			self:SetBackdropColor (unpack (backdrop_color_on_enter))
-		end
-		
-		local line_onleave = function (self)
-			self:SetBackdropColor (unpack (backdrop_color))
-		end
-
-		if (not automarks.scrolling) then
-			local markListRefresh = function(self, data, offset, totalLines)
-				for i = 1, totalLines do
-					local index = i + offset
-					local data = data[index]
-					
-					if (data) then
-						local line = self:GetLine(i)
-						line:SetBackdropColor (unpack (backdrop_color))
-						line:SetScript ("OnEnter", line_onenter)
-						line:SetScript ("OnLeave", line_onleave)
-						if (line) then
-							local name, markerType = unpack(data)
-							--print(index, name, markerType)
-							line.name:SetText(name)
-							line.markerType:SetText(tostring(markerType))
-						end
-					end
-				end
-			end
-
-			--who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
-			automarks.scrolling = DF:CreateScrollBox (automarks, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
-			DF:ReskinSlider (automarks.scrolling)
-			automarks.scrolling:SetPoint("TOPLEFT", automarks, "TOPLEFT", 5, -140)
-
-
-			--create the scroll widgets
-			local createLine = function(self, index)
-				local line = CreateFrame ("button", "$parentLine" .. index, self, "BackdropTemplate")
-				line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1)*(scrollConfig.scroll_line_height+1)) - 1)
-				line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-
-				line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-				line:SetBackdropColor(unpack (scrollConfig.backdrop_color))
-
-				local name = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
-				local markerType = line:CreateFontString ("$parentName", "OVERLAY", "GameFontNormal")
-
-				DF:SetFontSize (name, 10)
-				DF:SetFontSize (markerType, 10)
-
-				name:SetPoint("LEFT", line, "LEFT", 4, 0)
-				markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
-
-				
-
-				line.name = name
-				line.markerType = markerType
-				return line
-			end
-
-			--create the scroll widgets
-			for i = 1, scrollConfig.scroll_lines do
-				local line = automarks.scrolling:CreateLine (createLine, i)
-				line:SetPoint("TOP",0,-35-(i-1)*25)
-				line:SetPoint("LEFT",5,0)
-				line:SetPoint("RIGHT",-25,0)
-				line:SetHeight(25)
-				line._i = i
-
-				local marks = CreateFrame("Frame",nil,line)
-				marks:EnableMouse(true)
-				marks.Background = marks:CreateTexture(nil,"BACKGROUND")
-				marks.Background:SetColorTexture(0,0,0,.3)
-				marks.Background:SetPoint("TOPLEFT")
-				marks.Background:SetPoint("BOTTOMRIGHT")
-				marks:SetPoint("CENTER",18,0)
-				marks:SetSize(20*9,20)
-				marks.list = {}
-				for i=1,9 do
-					marks.list[i] = marks:CreateTexture(nil,"OVERLAY")
-					marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
-					marks.list[i]:SetSize(18,18)
-					marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-					if i == 9 then
-						marks.list[i]:SetTexCoord(0.125,0.1875,0.5,0.625)
-						marks.list[i]:SetVertexColor(1,1,1,0.7)			
-					end
-				end
-				line.marks = marks
-			end
-
-			--this build a list of units and send it to the scroll
-			function automarks.scrolling:UpdateList(_, _, option, value, value2, mouseButton)
-				local data = {}
-				local npcData = Config.profile.markersCustom
-				for id, _ in pairs (npcData) do
-					-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-					-- i really sure hope the same mob IDs dont appear in multiple instances.
-					-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-					if (npcData[id][3] == value or value =="none" or not value) then
-						local name = npcData[id][5] or id
-						local markerType = ""
-						if type(npcData[id][2])~="table" then markerType = "#".. npcData[id][2] else markerType = "#10" end
-						tinsert (data, {name, markerType})
-					end
-				end
-				automarks.scrolling:SetData (data)
-				automarks.scrolling:Refresh()
-			end
-			automarks.scrolling:UpdateList()
-			automarks.scrolling:Show()
-		end
 	end
-
+    scrollBox.create(automarks)
 
 --[[ 	
 		TODO: Add "BossMods" tab to control boss encounter features.
@@ -397,18 +390,8 @@ PocketMeroe.ShowMenu = function()
 
 		TODO: Incorporate raid role optimizer using officer notes.
 ]]
-
---[[ 	
-		local scenario = CreateFrame("frame", "PocketMeroeScenario", UIParent, "BackdropTemplate")
-		local scenarioDesc = DF:CreateLabel(scenario, "For |cFFFFFFFF<Serenity>|r - Mankrik, by |cFFFFFFFFmeroe|r")
-		scenarioDesc:ClearAllPoints()
-		scenarioDesc:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
-		scenarioDesc:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
-		scenarioDesc:SetHeight(20)
-		scenarioDesc:SetAlpha(0.9)
-		scenario:Show()
- ]]
-
- 	optionsFrame:Hide();
-	return optionsFrame;
+    meroe:Hide();
+	return meroe;
 end
+
+
