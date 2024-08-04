@@ -229,6 +229,8 @@ PocketMeroe.MenuToggle = function ()
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
-		PocketMeroe.markingScroll:UpdateList(nil, config.profile.var, true, "none");
+		if PocketMeroe.markingScroll then 
+			PocketMeroe.markingScroll:UpdateList(nil, config.profile.var, true, "none");
+		end
 	end
 end

@@ -30,6 +30,29 @@ local BuildRaidOptions = function(var)
     return result
 end
 
+local gui = {}
+
+function gui:CreateStatusBar(parentFrame)
+    local statusBar = CreateFrame("frame", "$parentStatusBar", parentFrame, "BackdropTemplate")
+	statusBar:SetHeight(20)
+	statusBar:SetAlpha(0.9)
+	statusBar:SetFrameLevel(parentFrame:GetFrameLevel()+2)
+	statusBar:ClearAllPoints()
+	statusBar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMLEFT")
+	statusBar:SetPoint("BOTTOMRIGHT", parentFrame, "BOTTOMRIGHT")
+
+end
+
+function gui:CreateAuthorBar(parentFrame)
+	local authorInfo = DF:CreateLabel(parentFrame, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
+	authorInfo:SetPoint("left", parentFrame, "left", 6, 0)
+	authorInfo:SetAlpha(.6)
+	authorInfo.textcolor = "silver"
+
+	parentFrame.authorInfo = authorInfo
+	DF:ApplyStandardBackdrop(parentFrame)
+end
+
 
 PocketMeroe.ShowMenu = function()
 	-- toggle scrollConfiguration menu
@@ -53,52 +76,18 @@ PocketMeroe.ShowMenu = function()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "PocketMeroeMenu")
-	--local meroeOptions = DF:NewPanel(UIParent, _, "meroeOptions", _, 897, 592)
+	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroe")
 
-	optionsFrame.Frame = optionsFrame
-	optionsFrame.__name = "Options"
-	optionsFrame.real_name = "POCKETMEROE_OPTIONS"
-	optionsFrame.__icon = [[Interface\Scenarios\ScenarioIcon-Interact]]
-
-	--create the footer below the options frame
-	local statusBar = CreateFrame("frame", "$parentStatusBar", optionsFrame, "BackdropTemplate")
-	local authorInfo = DF:CreateLabel(statusBar, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
-	statusBar:ClearAllPoints()
-	statusBar:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
-	statusBar:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
-	statusBar:SetHeight(20)
-	statusBar:SetAlpha(0.9)
-	statusBar:SetFrameLevel(optionsFrame:GetFrameLevel()+2)
-	authorInfo.textcolor = "silver"
-	authorInfo:ClearAllPoints()
-	authorInfo:SetPoint("left", statusBar, "left", 6, 0)
-	authorInfo:SetAlpha(.6)
-	statusBar.authorInfo = authorInfo
-	DF:ApplyStandardBackdrop(statusBar)
+    local status = gui:CreateStatusBar(optionsFrame)
+    local author = gui:CreateAuthorBar(status)
 
 	local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
 	bottomGradient:SetAllPoints(optionsFrame, 1)
-	bottomGradient:SetPoint("bottom-top", statusBar)
+	bottomGradient:SetPoint("bottom-top", status)
 
---[[ 	--divisor shown above the tab options area
-	local frameBackgroundTextureTopLine = optionsFrame:CreateTexture("$parentHeaderDivisorTopLine", "artwork")
-	local divisorYPosition = -60
-	frameBackgroundTextureTopLine:SetPoint("topleft", optionsFrame, "topleft", startX-9, divisorYPosition)
-	frameBackgroundTextureTopLine:SetPoint("topright", optionsFrame, "topright", -1, divisorYPosition)
-	frameBackgroundTextureTopLine:SetHeight(1)
-	frameBackgroundTextureTopLine:SetColorTexture(0.1215, 0.1176, 0.1294)
-
-	local frameBackgroundTextureLeftLine = optionsFrame:CreateTexture("$parentHeaderDivisorLeftLine", "artwork")
-	local divisorYPosition = -60
-	frameBackgroundTextureLeftLine:SetPoint("topleft", frameBackgroundTextureTopLine, "topleft", 0, 0)
-	frameBackgroundTextureLeftLine:SetPoint("bottomleft", optionsFrame, "bottomleft", startX-9, 1)
-	frameBackgroundTextureLeftLine:SetHeight(1)
-	frameBackgroundTextureLeftLine:SetColorTexture(0.1215, 0.1176, 0.1294)
- ]]
 	local tabList = {
-		{name = ".settings",	text = "General"},
-		{name = ".markers",		text = "Enabled Marks"},
+		{name = ".general",	text = "General"},
+		{name = ".automarks", text = "Automarks"},
 	}
 	local optionsTable = {
 		y_offset = 0,
@@ -127,7 +116,7 @@ PocketMeroe.ShowMenu = function()
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "meroe", tabList, optionsTable, hookList)
+	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "tabContainer", tabList, optionsTable, hookList)
 												
 	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
 	tabContainer:SetSize(optionsFrame:GetSize())
@@ -189,10 +178,10 @@ PocketMeroe.ShowMenu = function()
 	end
 
 	-- get each tab's frame and create a local variable to cache it
-	local generalSettingsFrame = tabContainer.AllFrames[1]
-	local marksscrollConfigFrame = tabContainer.AllFrames[2]
-	local tabFrameHeight = generalSettingsFrame:GetHeight()
-	--- General settings
+	local general = tabContainer.AllFrames[1]
+	local automarks = tabContainer.AllFrames[2]
+	local tabFrameHeight = general:GetHeight()
+	--- meroe.general
 	do
 		local optionsTable = {
 			always_boxfirst = true,
@@ -243,11 +232,11 @@ PocketMeroe.ShowMenu = function()
 			},
 			{type = "blank"},
 		}
-		DF:BuildMenu(generalSettingsFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+		DF:BuildMenu(general, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
 
 	end
 
-	--- Marking setings
+	--- meroe.marking
 	do
 		-- local markers = Config.profile.raidMarkers
 
@@ -277,8 +266,9 @@ PocketMeroe.ShowMenu = function()
 		local backdrop_color = {.8, .8, .8, 0.2}
 		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
 
-		DF:BuildMenu(marksscrollConfigFrame, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
-		local line_onenter = function (self)
+		DF:BuildMenu(automarks, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+		
+        local line_onenter = function (self)
 			self:SetBackdropColor (unpack (backdrop_color_on_enter))
 		end
 		
@@ -286,7 +276,7 @@ PocketMeroe.ShowMenu = function()
 			self:SetBackdropColor (unpack (backdrop_color))
 		end
 
-		if (not PocketMeroeScrollPanel) then
+		if (not automarks.scrolling) then
 			local markListRefresh = function(self, data, offset, totalLines)
 				for i = 1, totalLines do
 					local index = i + offset
@@ -308,10 +298,9 @@ PocketMeroe.ShowMenu = function()
 			end
 
 			--who needs a brain and knowledge of lua scopes anyways xd probably just pass this to the dropdown onclick that uses it ...
-			marksscrollConfigFrame.markingScroll = DF:CreateScrollBox (marksscrollConfigFrame, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
-			local markingScroll = PocketMeroe.markingScroll
-			DF:ReskinSlider (markingScroll)
-			markingScroll:SetPoint("TOPLEFT", marksscrollConfigFrame, "TOPLEFT", 5, -140)
+			automarks.scrolling = DF:CreateScrollBox (automarks, "$parentmarkingScroll", markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
+			DF:ReskinSlider (automarks.scrolling)
+			automarks.scrolling:SetPoint("TOPLEFT", automarks, "TOPLEFT", 5, -140)
 
 
 			--create the scroll widgets
@@ -341,7 +330,7 @@ PocketMeroe.ShowMenu = function()
 
 			--create the scroll widgets
 			for i = 1, scrollConfig.scroll_lines do
-				local line = markingScroll:CreateLine (createLine, i)
+				local line = automarks.scrolling:CreateLine (createLine, i)
 				line:SetPoint("TOP",0,-35-(i-1)*25)
 				line:SetPoint("LEFT",5,0)
 				line:SetPoint("RIGHT",-25,0)
@@ -371,7 +360,7 @@ PocketMeroe.ShowMenu = function()
 			end
 
 			--this build a list of units and send it to the scroll
-			function markingScroll:UpdateList(_, _, option, value, value2, mouseButton)
+			function automarks.scrolling:UpdateList(_, _, option, value, value2, mouseButton)
 				local data = {}
 				local npcData = Config.profile.markersCustom
 				for id, _ in pairs (npcData) do
@@ -385,11 +374,11 @@ PocketMeroe.ShowMenu = function()
 						tinsert (data, {name, markerType})
 					end
 				end
-				markingScroll:SetData (data)
-				markingScroll:Refresh()
+				automarks.scrolling:SetData (data)
+				automarks.scrolling:Refresh()
 			end
-			markingScroll:UpdateList()
-			markingScroll:Show()
+			automarks.scrolling:UpdateList()
+			automarks.scrolling:Show()
 		end
 	end
 
