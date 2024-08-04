@@ -97,7 +97,7 @@ end
 function PocketMeroe:MenuToggle ()
 	local config = PocketMeroe.db
 
-	local menu = meroe or PocketMeroe.ShowMenu();
+	local menu = meroeOptions or PocketMeroe.ShowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
@@ -154,6 +154,7 @@ function PocketMeroe:OnLoaded()
 	ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
 
 	local PocketMeroeEvents = CreateFrame("Frame")
+	PocketMeroeEvents:RegisterEvent("ADDON_LOADED")
 	PocketMeroeEvents:RegisterEvent("MODIFIER_STATE_CHANGED")
 	PocketMeroeEvents:RegisterEvent("PLAYER_TARGET_CHANGED")
 	PocketMeroeEvents:RegisterEvent("UPDATE_MOUSEOVER_UNIT")

@@ -152,7 +152,7 @@ PocketMeroe.ShowMenu = function()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroe.Options")
+	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroeOptions")
 
     local statusBar = CreateFrame("frame", "$parent.Status", optionsFrame, "BackdropTemplate")
     statusBar:SetHeight(20)
@@ -363,8 +363,8 @@ PocketMeroe.ShowMenu = function()
 
 		TODO: Incorporate raid role optimizer using officer notes.
 ]]
-    meroe:Hide();
-	return meroe;
+    meroeOptions.Hide();
+	return meroeOptions;
 end
 
 
