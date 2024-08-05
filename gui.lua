@@ -1,14 +1,13 @@
 local DF = _G ["DetailsFramework"]
 
-
-local PocketMeroe = {}
+local gui = {}
 local ScrollBox= {}
 
-PocketMeroe.SetSetting = function(...)
-	PocketMeroe.OptionsOnClick(nil, nil, ...)
+gui.SetSetting = function(...)
+	gui.OptionsOnClick(nil, nil, ...)
 end
 
-PocketMeroe.SetModifier = function(_, var, value, key)
+gui.SetModifier = function(_, var, value, key)
 	if Config[var] then
 		Config [var].none = false
 		Config [var].alt = false
@@ -52,7 +51,7 @@ local BuildModifierOptions = function(var)
             label = modifier:gsub("^%l", string.upper),  -- Capitalize the first letter
             value = modifier,
             onclick = function()
-                PocketMeroe.SetModifier(nil, var, true, modifier)
+                gui.SetModifier(nil, var, true, modifier)
             end,
         })
     end
@@ -60,7 +59,7 @@ local BuildModifierOptions = function(var)
     return result
 end
 
-PocketMeroe.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
+gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	if option == "use_mouseover" then
 		Config.use_mouseover = not Config.use_mouseover
 		return
@@ -176,14 +175,14 @@ function ScrollBox:UpdateList(_, _, option, value, value2, mouseButton)
     ScrollBox:Refresh()
 end
 
-PocketMeroe.ShowMenu = function()
+gui.ShowMenu = function()
 	-- toggle scrollConfiguration menu
 
 	if not PocketMeroeDB then
-		print("PocketMeroe: Database not loaded! Stopping!")
+		print("PocketMeroe.gui: PocketMeroeDB not loaded! Stopping!")
 		return
 	end
-	Config = PocketMeroeDB.profile
+	Config = PocketMeroe.db.profile
 	ClearModifier = Config.clear_modifier
 	MarkingModifier = Config.marking_modifier
 
@@ -340,7 +339,7 @@ PocketMeroe.ShowMenu = function()
 					return Config.use_mouseover
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("use_mouseover", Config.use_mouseover)
+					gui.SetSetting("use_mouseover", Config.use_mouseover)
 				end,
 				name = "Mouseover",
 				desc = "Allow marking by mousing over mobs.",
@@ -351,7 +350,7 @@ PocketMeroe.ShowMenu = function()
 					return Config.require_leader
 				end,
 				set = function(self, fixedparam, value)
-					PocketMeroe.SetSetting("require_leader", Config.require_leader)
+					gui.SetSetting("require_leader", Config.require_leader)
 				end,
 				name = "Require Leader",
 				desc = "If toggled then you must be the leader to mark mobs.",
@@ -422,8 +421,8 @@ PocketMeroe.ShowMenu = function()
 	return PocketMeroeOptions;
 end
 
-PocketMeroe.MenuToggle = function ()
-	local menu = PocketMeroeOptions or PocketMeroe.ShowMenu();
+gui.MenuToggle = function ()
+	local menu = PocketMeroeOptions or gui.ShowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
@@ -433,4 +432,4 @@ PocketMeroe.MenuToggle = function ()
 	end
 end
 
-PocketMeroe.gui = PocketMeroe
+PocketMeroe.gui = gui

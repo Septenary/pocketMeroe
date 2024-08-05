@@ -5,10 +5,10 @@ local marks = {}
 
 function marks.InitTooltips ()
 	if not PocketMeroeDB then
-		print("PocketMeroe: Database not loaded! Stopping!")
+		print("PocketMeroe.marks: Database not loaded! Stopping!")
 		return
 	end
-	local Config = PocketMeroeDB.profile
+	local Config = PocketMeroe.db.profile
 	local ClearModifier = Config.ClearModifier
 	local MarkingModifier = Config.MarkingModifier
 	function marks:tooltipExtend(tooltip)

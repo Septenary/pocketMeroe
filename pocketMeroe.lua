@@ -91,10 +91,11 @@ local default_config = {
 	},
 };
 
-local PocketMeroe_OnEvent = function(_,event, ...)
-	ChatFrame1:AddMessage	(" main by meroe - <Serenity> is doing something ");
+PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
-	--if (name ~= "main") then return end
+
+local PocketMeroe_OnEvent = function(_,event, ...)
+	--ChatFrame1:AddMessage	(" main by meroe - <Serenity> is doing something ");
 	if (event == "MODIFIER_STATE_CHANGED") then
 		if main.markersModifierChanged then
 			main.markersModifierChanged()
@@ -123,10 +124,22 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "pocketMeroe" then
 		ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> is loaded ");
 		ChatFrame1:AddMessage	(" Remember kids, 'meroe' rhymes with '░░░░░' ");
+		if PocketMeroeDB then
+			if (PocketMeroe.db:GetCurrentProfile() ~= "Default") then
+				PocketMeroe.db:SetProfile("Default")
+			end
+			PocketMeroe.db.RegisterCallback(main, "OnProfileChanged", "RefreshConfig")
+		else
+			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroeDB is not initialized.")
+		end
 
         -- Setup slash commands
         local function HandleSlashCommands(str)
-            PocketMeroe:MenuToggle()
+			if PocketMeroe and PocketMeroe.gui then
+            	PocketMeroe.gui:MenuToggle()
+			else
+				ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.gui is not initialized.")
+			end
         end
 
 		SlashCmdList["Meroe"] = HandleSlashCommands;
@@ -134,10 +147,6 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
 		SLASH_Meroe2 = "/MEROE";
 		--SLASH_Kishibe1 = "/kishibe"
 		--SlashCmdList.Kishibe = EasterEggKish;	
-		if (PocketMeroe.db:GetCurrentProfile() ~= "Default") then
-			PocketMeroe.db:SetProfile("Default")
-		end
-		PocketMeroe.modules.db.RegisterCallback(main, "OnProfileChanged", "RefreshConfig")
 
         -- Other initialization code
 		local eventframe = CreateFrame("frame");
@@ -145,10 +154,11 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
         eventframe:RegisterEvent("PLAYER_TARGET_CHANGED")
         eventframe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
         eventframe:SetScript("OnEvent", PocketMeroe_OnEvent)
-
-        PocketMeroe.InitTooltips()
-    else
-		ChatFrame1:AddMessage	(" pocketMeroe by meroe - <Serenity> failed to load ");
+		if PocketMeroe and PocketMeroe.marks then
+			PocketMeroe.marks.InitTooltips()
+		else
+			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not initialized.")
+		end
 	end
 end
 
@@ -163,7 +173,6 @@ end
 
 mainFrame:RegisterEvent("ADDON_LOADED");
 mainFrame:SetScript("OnEvent", PocketMeroe_OnLoad);
-PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
 PocketMeroe.main = main
 _G["PocketMeroe"] = PocketMeroe
