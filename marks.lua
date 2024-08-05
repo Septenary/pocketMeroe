@@ -1,10 +1,12 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local addonName, priviteTable = ...
-local Config = PocketMeroe.db
+local PocketMeroe = _G["PocketMeroe.Global"]
 
-local marks = PocketMeroe
+local marks = PocketMeroe.marks
+local Config = PocketMeroe.Addon.db.profile
+local ClearModifier = Config.ClearModifier
+local MarkingModifier = Config.MarkingModifier
 
 function marks.InitTooltips ()
 	function marks:tooltipExtend(tooltip)
@@ -68,9 +70,6 @@ marks.clearModifierIsPressed = false
 
 -- check GUI options and keyboard state
 marks.markersEnabled = function()
-	local ClearModifier = Config.ClearModifier
-	local MarkingModifier = Config.MarkingModifier
-
 	if not Config.profile.use_mouseover then
 		return false
 	end
@@ -91,9 +90,6 @@ end
 
 -- check specifics for Clearing or Marking
 marks.markersModifierChanged = function()
-	local ClearModifier = Config.ClearModifier
-	local MarkingModifier = Config.MarkingModifier
-
 	if ClearModifier and Config.profile.use_mouseover then
 		if (ClearModifier.alt and IsAltKeyDown())
 		or (ClearModifier.ctrl and IsControlKeyDown())

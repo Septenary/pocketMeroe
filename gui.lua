@@ -1,12 +1,25 @@
-local addonName, priviteTable = ...
-local Config = PocketMeroe.db.profile
-
 local DF = _G ["DetailsFramework"]
+local PocketMeroe = _G["PocketMeroe.Global"]
+
+local Config = PocketMeroe.Addon.db.profile
 local ClearModifier = Config.clear_modifier
 local MarkingModifier = Config.marking_modifier
 
 local ScrollBox= {}
 
+PocketMeroe.SetSetting = function(...)
+	PocketMeroe.OptionsOnClick(nil, nil, ...)
+end
+
+PocketMeroe.SetModifier = function(_, var, value, key)
+	if Config[var] then
+		Config [var].none = false
+		Config [var].alt = false
+		Config [var].ctrl = false
+		Config [var].shift = false
+		Config [var] [key] = value
+	end
+end
 local BuildRaidOptions = function(var)
     local raids = {
         { label = "All",       value = "none" },
@@ -31,6 +44,41 @@ local BuildRaidOptions = function(var)
     end
 
     return result
+end
+
+local BuildModifierOptions = function(var)
+    local modifiers = {"none", "alt", "ctrl", "shift"}
+    local result = {}
+
+    for _, modifier in ipairs(modifiers) do
+        table.insert(result, {
+            label = modifier:gsub("^%l", string.upper),  -- Capitalize the first letter
+            value = modifier,
+            onclick = function()
+                PocketMeroe.SetModifier(nil, var, true, modifier)
+            end,
+        })
+    end
+
+    return result
+end
+
+PocketMeroe.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
+	if option == "use_mouseover" then
+		Config.use_mouseover = not Config.use_mouseover
+		return
+	end
+	if option == "require_leader" then
+		Config.require_leader = not Config.require_leader
+		return
+	end
+	for i, mark in pairs(Config.raidMarkers) do
+		if option == i then
+			--print(option, value)
+			mark[value] = not mark[value]
+			return
+		end
+	end
 end
 
 function ScrollBox:Create(parent)
@@ -133,8 +181,8 @@ end
 
 PocketMeroe.ShowMenu = function()
 	-- toggle scrollConfiguration menu
-	if (meroe) then
-		meroe:Show()
+	if (PocketMeroeOptions) then
+		PocketMeroeOptions:Show()
 		return
 	end
 
@@ -153,7 +201,7 @@ PocketMeroe.ShowMenu = function()
 	local startX = 160
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel (UIParent, 560, 330, "pocketMeroe Config", "meroeOptions")
+	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "PocketMeroeOptions")
 
     local statusBar = CreateFrame("frame", "$parent.Status", optionsFrame, "BackdropTemplate")
     statusBar:SetHeight(20)
@@ -307,7 +355,7 @@ PocketMeroe.ShowMenu = function()
 				get = function()
 					return MarkingModifier.none and "none" or MarkingModifier.alt and "alt" or MarkingModifier.ctrl and "ctrl" or MarkingModifier.shift and "shift"
 				end,
-				values = function () return PocketMeroe.BuildModifierOptions("marking_modifier") end,
+				values = function () return BuildModifierOptions("marking_modifier") end,
 				name = "Marking Modifier",
 				desc = "Require this modifier key to be held down for mouseover marking to work. ",
 			},
@@ -316,7 +364,7 @@ PocketMeroe.ShowMenu = function()
 				get = function() 
 					return ClearModifier.none and "none" or ClearModifier.alt and "alt" or ClearModifier.ctrl and "ctrl" or ClearModifier.shift and "shift"
 				end,
-				values = function () return PocketMeroe.BuildModifierOptions("clear_modifier") end,
+				values = function () return BuildModifierOptions("clear_modifier") end,
 				name = "Clear Modifier",
 				desc = "Require this modifier key to be held down to clear existing marks. ",
 			},
@@ -364,8 +412,21 @@ PocketMeroe.ShowMenu = function()
 
 		TODO: Incorporate raid role optimizer using officer notes.
 ]]
-    meroeOptions.Hide();
-	return meroeOptions;
+	PocketMeroeOptions:Hide();
+	return PocketMeroeOptions;
 end
 
+
+
+
+PocketMeroe.MenuToggle = function ()
+	local menu = PocketMeroeOptions or PocketMeroe.ShowMenu();
+	if (menu) then
+		menu:SetShown(not menu:IsShown());
+		--needs to visually reset after closing the options menu
+--[[ 		if automarksScroll then
+			automarksScroll:UpdateList(nil, config.profile.var, true, "none");
+		end ]]
+	end
+end
 
