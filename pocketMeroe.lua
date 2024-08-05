@@ -96,26 +96,30 @@ PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
 local PocketMeroe_OnEvent = function(_,event, ...)
 	--ChatFrame1:AddMessage	(" main by meroe - <Serenity> is doing something ");
-	if (event == "MODIFIER_STATE_CHANGED") then
-		if main.markersModifierChanged then
-			main.markersModifierChanged()
+	if PocketMeroe.marks then
+		if (event == "MODIFIER_STATE_CHANGED") then
+			if PocketMeroe.marks.markersModifierChanged then
+				PocketMeroe.marks.markersModifierChanged()
+			end
 		end
-	end
 
-	-- Hook tooltip
-	if not main.tooltipHooked then
-		main.tooltipHooked = true
-		GameTooltip:HookScript("OnTooltipSetUnit", function(tooltip)
-				if main.tooltipExtend then
-					main.tooltipExtend(tooltip)
-				end
-		end)
-	end
-	-- Extend tooltip
-	if (event == "MODIFIER_STATE_CHANGED") then
-		if (UnitExists("mouseover")) then
-			GameTooltip:SetUnit("mouseover")
+		-- Hook tooltip
+		if not PocketMeroe.marks.tooltipHooked then
+			PocketMeroe.marks.tooltipHooked = true
+			GameTooltip:HookScript("OnTooltipSetUnit", function(tooltip)
+					if PocketMeroe.marks.tooltipExtend then
+						PocketMeroe.marks.tooltipExtend(tooltip)
+					end
+			end)
 		end
+		-- Extend tooltip
+		if (event == "MODIFIER_STATE_CHANGED") then
+			if (UnitExists("mouseover")) then
+				GameTooltip:SetUnit("mouseover")
+			end
+		end
+	else
+		ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not responding.")
 	end
 end
 
@@ -156,6 +160,7 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
         eventframe:SetScript("OnEvent", PocketMeroe_OnEvent)
 		if PocketMeroe and PocketMeroe.marks then
 			PocketMeroe.marks.InitTooltips()
+			PocketMeroe.marks.InitMarking()
 		else
 			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not initialized.")
 		end
