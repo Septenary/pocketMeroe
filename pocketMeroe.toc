@@ -8,6 +8,6 @@
 libs\libs.xml
 #@end-no-lib-strip@
 
+pocketMeroe.lua
 marks.lua
 gui.lua
-pocketMeroe.lua

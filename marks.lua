@@ -1,14 +1,16 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local PocketMeroe = _G["PocketMeroe.Global"]
-
-local marks = PocketMeroe.marks
-local Config = PocketMeroe.Addon.db.profile
-local ClearModifier = Config.ClearModifier
-local MarkingModifier = Config.MarkingModifier
+local marks = {}
 
 function marks.InitTooltips ()
+	if not PocketMeroeDB then
+		print("PocketMeroe: Database not loaded! Stopping!")
+		return
+	end
+	local Config = PocketMeroeDB.profile
+	local ClearModifier = Config.ClearModifier
+	local MarkingModifier = Config.MarkingModifier
 	function marks:tooltipExtend(tooltip)
 		local unitName, unitId = GameTooltip:GetUnit()
 		if unitId and UnitExists(unitId) then
@@ -380,3 +382,4 @@ end
 --     markersGetPriority -> markersGetFreeIndex
 --   markersClearUnit() OR succeed + markersAddToUsed()
 
+PocketMeroe.marks = marks

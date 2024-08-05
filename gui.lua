@@ -1,10 +1,7 @@
 local DF = _G ["DetailsFramework"]
-local PocketMeroe = _G["PocketMeroe.Global"]
 
-local Config = PocketMeroe.Addon.db.profile
-local ClearModifier = Config.clear_modifier
-local MarkingModifier = Config.marking_modifier
 
+local PocketMeroe = {}
 local ScrollBox= {}
 
 PocketMeroe.SetSetting = function(...)
@@ -181,6 +178,15 @@ end
 
 PocketMeroe.ShowMenu = function()
 	-- toggle scrollConfiguration menu
+
+	if not PocketMeroeDB then
+		print("PocketMeroe: Database not loaded! Stopping!")
+		return
+	end
+	Config = PocketMeroeDB.profile
+	ClearModifier = Config.clear_modifier
+	MarkingModifier = Config.marking_modifier
+
 	if (PocketMeroeOptions) then
 		PocketMeroeOptions:Show()
 		return
@@ -416,9 +422,6 @@ PocketMeroe.ShowMenu = function()
 	return PocketMeroeOptions;
 end
 
-
-
-
 PocketMeroe.MenuToggle = function ()
 	local menu = PocketMeroeOptions or PocketMeroe.ShowMenu();
 	if (menu) then
@@ -430,3 +433,4 @@ PocketMeroe.MenuToggle = function ()
 	end
 end
 
+PocketMeroe.gui = PocketMeroe
