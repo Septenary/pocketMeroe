@@ -25,6 +25,7 @@ local default_config = {
 	profile = {
 		use_mouseover = true,
 		require_leader = true,
+		global_unmarking = false,
 		marking_modifier = {
 			none = false,
 			alt = false,
@@ -42,6 +43,7 @@ local default_config = {
 		[1707]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
 		[1708]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
 		[3501]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
+		[4624]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
 		[14750] = {{},1,"ZG", "Trash", "Gurubashi Bat Rider"},
 		[14883] = {{},1,"ZG", "Trash", "Voodoo Slave"},
 		[11830] = {{},1,"ZG", "Trash", "Hakkari Priest"},
@@ -93,9 +95,7 @@ local default_config = {
 
 PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
-
 local PocketMeroe_OnEvent = function(_,event, ...)
-	--ChatFrame1:AddMessage	(" main by meroe - <Serenity> is doing something ");
 	if PocketMeroe.marks then
 		if (event == "MODIFIER_STATE_CHANGED") then
 			if PocketMeroe.marks.markersModifierChanged then
@@ -122,7 +122,6 @@ local PocketMeroe_OnEvent = function(_,event, ...)
 		ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not responding.")
 	end
 end
-
 
 local PocketMeroe_OnLoad = function (_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "pocketMeroe" then
@@ -159,14 +158,13 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
         eventframe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
         eventframe:SetScript("OnEvent", PocketMeroe_OnEvent)
 		if PocketMeroe and PocketMeroe.marks then
-			PocketMeroe.marks.InitTooltips()
 			PocketMeroe.marks.InitMarking()
+			PocketMeroe.marks.InitTooltips()
 		else
 			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not initialized.")
 		end
 	end
 end
-
 
 function main.OnInit()
 end
@@ -174,7 +172,6 @@ end
 function main:RefreshConfig()
 	--
 end
-
 
 mainFrame:RegisterEvent("ADDON_LOADED");
 mainFrame:SetScript("OnEvent", PocketMeroe_OnLoad);

@@ -8,21 +8,21 @@ function marks.InitTooltips ()
 		print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
 		return
 	end
-	local Config = PocketMeroe.db.profile
+	local npcData = PocketMeroe.db.profile.markersCustom
 
-	function marks:tooltipExtend(tooltip)
+	function marks.tooltipExtend(tooltip)
 		local unitName, unitId = GameTooltip:GetUnit()
 		if unitId and UnitExists(unitId) then
-			local npcData = Config.markersCustom
 			local guid = UnitGUID(unitId)
             if not guid then return end
 			local type, _, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid)
-			local npcInfo = npcData[npc_id]
+			local npcInfo = PocketMeroe.db.profile.markersCustom[tonumber(npc_id)]
 			if (npcInfo ~= nil) then
-				if (npcInfo.untauntable) then
+				--print(npcInfo)
+--[[ 				if (npcInfo.untauntable) then
 					local ttIcon = "|T136122:0|t"
 					--GameTooltip:AddLine(ttIcon.." |cFFC41E3A! Untauntable !|r "..ttIcon)
-				end
+				end ]]
 				-- tooltip:Show();
 				if (GameTooltip:GetWidth() > 700) then
 					GameTooltip:SetWidth(700)
@@ -33,28 +33,52 @@ function marks.InitTooltips ()
 						return
 					end
 					local markerType, markerBias = marks.markersGetTypeForNpc(npc_id, unitName)
+					--print(markerType, markerBias)
 					if (markerType ~= nil) then
+						--print("Trying to mark ", npc_id)
 						marks.markersSetUnit(unitId, markerType, markerBias)
 					end
+				end
+			end
+			-- lets enable global unmarking just for fun :)
+			if marks.markersEnabled() then
+				--print("NPC with ID", npc_id, "not found in markersCustom")
+				if marks.clearModifierIsPressed then
+					marks.markersRemoveUnit(unitId)
+					return
 				end
 			end
 		end
 	end
 end
 
+function marks.SpamNpcData ()
+	for id in pairs(PocketMeroe.db.profile.markersCustom) do
+		local raidIcons, priority, zone, sortCategory, name = unpack(PocketMeroe.db.profile.markersCustom[id])
+		-- lets not invest in debug code too greatly
+		local debugIcons = ""
+		for _, marker in ipairs(raidIcons) do
+			debugIcons = debugIcons .. "{rt" .. marker .. "}"
+		end
+		-- print("NPC Details: ", id)
+		-- print("  Name:",       name)
+		-- print("  Zone:",       zone, sortCategory)
+		-- print("  Priority:",   priority)
+		-- print("  Raid Icons:", debugIcons)
+	end
+end
 --[[
 	TODO: Broadcast some of this to party/raid members.
 ]]
 
--- List of all currently used markers
 function marks.InitMarking ()
 	if not PocketMeroeDB then
 		print("PocketMeroe.marks.InitMarking: Database not loaded! Stopping!")
 		return
 	end
 	local Config = PocketMeroe.db.profile
-	local ClearModifier = Config.ClearModifier
-	local MarkingModifier = Config.MarkingModifier
+	local ClearModifier = Config.clear_modifier
+	local MarkingModifier = Config.marking_modifier
 
 	marks.markersUsed = marks.markersUsed or {}
 	marks.markersUsedPriority = marks.markersUsedPriority or {}
@@ -100,7 +124,7 @@ function marks.InitMarking ()
 
 	-- check specifics for Clearing or Marking
 	marks.markersModifierChanged = function()
-		if ClearModifier and Config.use_mouseover then
+		if ClearModifier ~= nil and Config.use_mouseover then
 			if (ClearModifier.alt and IsAltKeyDown())
 			or (ClearModifier.ctrl and IsControlKeyDown())
 			or (ClearModifier.shift and IsShiftKeyDown()) then
@@ -110,7 +134,7 @@ function marks.InitMarking ()
 			end
 			return -- Blocks a unit from repeatedly being marked and unmarked quickly.
 		end
-		if MarkingModifier and Config.use_mouseover then
+		if MarkingModifier ~= nil and Config.use_mouseover then
 			if (MarkingModifier.alt and IsAltKeyDown())
 			or (MarkingModifier.ctrl and IsControlKeyDown())
 			or (MarkingModifier.shift and IsShiftKeyDown()) then
@@ -188,9 +212,9 @@ function marks.InitMarking ()
 		--     marks.markersAddToUsed(aura, partyMember.."target")     
 		-- end
 		-- Don't use marks already used on boss1-4
-		for i = 1, 4 do
-			marks.markersAddToUsed("boss"..i)
-		end
+		-- for i = 1, 4 do
+		-- 	marks.markersAddToUsed("boss"..i)
+		-- end
 		-- Don't use marks already used on nameplates
 		for i = 1, 40 do
 			marks.markersAddToUsed("nameplate"..i)
@@ -215,7 +239,7 @@ function marks.InitMarking ()
 			return markerIndex
 		end
 		-- Pre-defined exact markers, "rt1-8"
-		local markerExact = strmatch(markerType, "rt([0-9]+)")
+		local markerExact = strmatch(markerType, "([0-9]+)")
 
 		if markerExact ~= nil then
 			local i = tonumber(markerExact)
@@ -230,7 +254,7 @@ function marks.InitMarking ()
 			--return nil
 		end
 		-- Get the first available marker from the given type
-		if not markerType or not Config.raidMarkers[markerType] then
+		if not markerType or not Config.markersCustom[markerType] then
 			return nil
 		end
 		for i = 8, 1, -1 do
@@ -240,8 +264,8 @@ function marks.InitMarking ()
 			local s = tostring(i)
 			--print("markerType:", markerType)
 			--print("markersUsedPriority[", i, "]:", marks.markersUsedPriority[i])
-			--print("mt", Config.raidMarkers[markerType], "s", Config.raidMarkers[markerType][s])
-			if Config.raidMarkers[markerType][i] then
+			--print("mt", Config.markersCustom[markerType], "s", Config.markersCustom[markerType][s])
+			if Config.markersCustom[markerType][i] then
 				--print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
 				if not marks.markersUsed[i] then
 					return i
@@ -265,19 +289,14 @@ function marks.InitMarking ()
 				priorityMax = max(priorityMax, priority)
 			end
 			if (priorityMax > priority) then
-				priority = priority + 0.01
+				priority = priority - 0.01
 			end
+			--if priority then print("Table Priority: ", priority) end
 			return priority
 		end
 		-- Higher priority for exact markers
-		if markerType and strmatch(markerType, "rt[0-9]+") then
-			return 11
-		end
-		-- Get the priority for the given marker type
-		if markerType then
-			return markerType
-		else
-			return 0
+		if markerType and strmatch(markerType, "[0-9]+") then
+			return 9-markerType
 		end
 	end
 
@@ -293,19 +312,15 @@ function marks.InitMarking ()
 				local raidIcons, priority, zone, sortCategory, name = unpack(markersCustom[id])
 				if  (id == npcId) then
 					-- lets not invest in debug code too greatly
-					local debugIcons = toString("{rt",table.concat(raidIcons, "}, {rt"),"}")
-					print("NPC Details: ", id)
-					print("  Name:",       name)
-					print("  Zone:",       zone, sortCategory)
-					print("  Priority:",   priority)
-					print("  Raid Icons:", debugIcons)
-					for i, raidIcon in ipairs(raidIcons or {8,7,6,5,4,3,2,1}) do
-						if raidIcon then
-							print("Raid Icon: " .. raidIcon)
-							--local customMarkerType = npcData[id][1][i]
-							--tinsert(npcData[2], customMarkerType)
-						end
+					local debugIcons = ""
+					for _, marker in ipairs(raidIcons) do
+						debugIcons = debugIcons .. "{rt" .. marker .. "}"
 					end
+					-- print("NPC Details: ", id)
+					-- print("  Name:",       name)
+					-- print("  Zone:",       zone, sortCategory)
+					-- print("  Priority:",   priority)
+					-- print("  Raid Icons:", debugIcons)
 					return raidIcons, (markersCustom[npcId].markerBias or 0.0)
 				--else
 					--wipe(npcData[npcId].markerType)
@@ -359,14 +374,16 @@ function marks.InitMarking ()
 	-- Set marker type for unit
 	marks.markersSetUnit = function(unitId, markerType, markerBias)
 		marks.markersGetUsed()
+		--print(marks.markersGetPriority(markerType), " + ", (markerBias or 0.0))
+		--print("Unit:", unitId)
+		--print("Marker Type:", markerType, type(markerType))
+		--print("Marker Bias:", markerBias)
 		local priority = marks.markersGetPriority(markerType) + (markerBias or 0.0)
 		local markerCurrent = GetRaidTargetIndex(unitId)
 		local markerIndex = marks.markersGetFreeIndex(markerType, priority, markerCurrent)
-		print("Unit:", unitId)
-		print("Marker Type:", markerType)
-		print("Priority:", priority)
-		print("Current Marker Index:", markerCurrent)
-		print("Free Marker Index:", markerIndex)
+		-- print("Priority:", priority)
+		-- print("Current Marker Index:", markerCurrent)
+		-- print("Free Marker Index:", markerIndex)
 		if (markerIndex ~= nil) and (markerIndex ~= markerCurrent) then
 			--print("Setting marker for unit:", unitId)
 			marks.markersClearUnit(unitId)
@@ -390,4 +407,5 @@ function marks.InitMarking ()
 	--     markersGetPriority -> markersGetFreeIndex
 	--   markersClearUnit() OR succeed + markersAddToUsed()
 end
+
 PocketMeroe.marks = marks
