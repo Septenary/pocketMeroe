@@ -180,7 +180,7 @@ function marks.InitMarking ()
 			local guid = UnitGUID(unitId)
 			marks.markersUsed[index] = true
 			marks.markersUsedPriority[index] = priority
-			if guid then 
+			if guid then
 				marks.markersUsedByGUID[guid] = index
 			end
 	--[[ 			
@@ -229,7 +229,7 @@ function marks.InitMarking ()
 			local markerPriority = 0
 			for _, t in ipairs(markerType) do
 				local p = marks.markersGetPriority(t)
-				if not markerIndex or (p > markerPriority) then
+				if not markerIndex or (p < markerPriority) then -- ">"
 					markerIndex = marks.markersGetFreeIndex(t, priority, markerCurrent)
 					if (markerIndex ~= nil) then
 						markerPriority = p
