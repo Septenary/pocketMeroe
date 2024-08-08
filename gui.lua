@@ -32,8 +32,52 @@ gui.CreateScrollBox = function(self)
 	local scrollBox = DF:CreateScrollBox(self, "$parent.Scrolling", self.markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height, gui.CreateScrollBoxLine, true)
 	DF:ReskinSlider (scrollBox)
 
+	gui.CreateScrollBoxLine = function (scrollBox, index)
+		local line = scrollBox:CreateLine()
+
+		line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+
+		local marksContainer = CreateFrame("Frame", nil, line)
+		marksContainer:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+		marksContainer:SetPoint("CENTER")
+		marksContainer:EnableMouse(true)
+
+		local iconSize = 32
+		local icons = {}
+		for id, texture in pairs(raidIcons) do
+			local button = CreateFrame("Button", nil, marksContainer)
+			button:SetSize(iconSize, iconSize)
+			button:SetPoint("LEFT", marksContainer, "LEFT", (id - 1) * (iconSize + 5), 0)
+
+			button.icon = button:CreateTexture(nil, "BACKGROUND")
+			button.icon:SetAllPoints()
+			button.icon:SetTexture(texture)
+
+			button:SetScript("OnClick", function()
+				if self.onSelect then
+					self.onSelect(id, index)
+				end
+			end)
+
+			icons[id] = button
+		end
+
+		line.icons = icons
+
+		local defaultIconId = 1
+		line:SetBackdrop({
+			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+			edgeSize = 12,
+		})
+		line:SetBackdropBorderColor(1, 1, 1, 0)
+
+		return line
+	end
+
+
+
     for i = 1, scrollConfig.scroll_lines do
-		local line = scrollBox:CreateLine(self, i)
+		local line = scrollBox:CreateLine(gui.CreateScrollBoxLine, i)
         line:SetPoint("TOP", 0, -35 - (i - 1) * scrollConfig.scroll_line_height)
         line:SetPoint("LEFT", 5, 0)
         line:SetPoint("RIGHT", -25, 0)
@@ -41,28 +85,29 @@ gui.CreateScrollBox = function(self)
         line._i = i
     end
 
-	function scrollBox:UpdateList(_, _, option, value, value2, mouseButton)
-		local data = {}
-		local npcData = PocketMeroe.db.profile.markersCustom
-		for id, _ in pairs (npcData) do
-			local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
-			-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-			-- i really sure hope the same mob IDs dont appear in multiple instances.
-			-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-			if (zone == value or value =="none" or not value) then
-				if not name then name = id end
-				table.insert(data, {name, zone})
-			end
-		end
-		scrollBox:SetData(data)
-		scrollBox:Refresh()
-	end
-	scrollBox:UpdateList()
+
 	scrollBox.OnSelect = function(selectedIconId, lineIndex)
 		print("Icon " .. selectedIconId .. " selected for line " .. lineIndex)
 	end
 	gui.scrollBox = scrollBox
     return scrollBox
+end
+
+function gui.scrollBox:UpdateList(_, _, option, value, value2, mouseButton)
+	local data = {}
+	local npcData = PocketMeroe.db.profile.markersCustom
+	for id, _ in pairs (npcData) do
+		local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+		-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+		-- i really sure hope the same mob IDs dont appear in multiple instances.
+		-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+		if (zone == value or value =="none" or not value) then
+			if not name then name = id end
+			table.insert(data, {name, zone})
+		end
+	end
+	gui.scrollBox:SetData(data)
+	gui.scrollBoxscrollBox:Refresh()
 end
 
 gui.SetModifier = function(_, var, value, key)
@@ -136,47 +181,7 @@ gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	end
 end
 
-gui.CreateScrollBoxLine = function (scrollBox, index)
-	local line = scrollBox:CreateLine()
 
-	line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-
-	local marksContainer = CreateFrame("Frame", nil, line)
-	marksContainer:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-	marksContainer:SetPoint("CENTER")
-	marksContainer:EnableMouse(true)
-
-	local iconSize = 32
-	local icons = {}
-	for id, texture in pairs(raidIcons) do
-		local button = CreateFrame("Button", nil, marksContainer)
-		button:SetSize(iconSize, iconSize)
-        button:SetPoint("LEFT", marksContainer, "LEFT", (id - 1) * (iconSize + 5), 0)
-
-		button.icon = button:CreateTexture(nil, "BACKGROUND")
-		button.icon:SetAllPoints()
-		button.icon:SetTexture(texture)
-
-		button:SetScript("OnClick", function()
-			if self.onSelect then 
-				self.onSelect(id, index)
-			end
-		end)
-
-		icons[id] = button
-	end
-
-	line.icons = icons
-
-	local defaultIconId = 1
-	line:SetBackdrop({
-		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 12,
-	})
-	line:SetBackdropBorderColor(1, 1, 1, 0)
-
-	return line
-end
 
 gui.updateIconSelector = function(line, selectedIconId)
 	for id, button in pairs(line.icons) do
@@ -187,9 +192,6 @@ gui.updateIconSelector = function(line, selectedIconId)
 		end
 	end
 end
-
-
-
 
 
 gui.ShowMenu = function()
@@ -277,7 +279,7 @@ gui.ShowMenu = function()
 	}
 
 	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "$parent.tabContainer", tabList, optionsTable, hookList)
-												
+
 	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
 	tabContainer:SetSize(optionsFrame:GetSize())
 	tabContainer:Show()
@@ -383,7 +385,7 @@ gui.ShowMenu = function()
 			},
 			{
 				type = "select",
-				get = function() 
+				get = function()
 					return ClearModifier.none and "none" or ClearModifier.alt and "alt" or ClearModifier.ctrl and "ctrl" or ClearModifier.shift and "shift"
 				end,
 				values = function () return BuildModifierOptions("clear_modifier") end,
@@ -404,7 +406,7 @@ gui.ShowMenu = function()
 			always_boxfirst = false,
 			{
 				type = "select",
-				get = function() 
+				get = function()
 					return "none" or "ZG" or "AQ20" or "MC" or "BWL"
 				end,
 				values = function () return BuildRaidOptions(Config.var) end,
@@ -416,7 +418,7 @@ gui.ShowMenu = function()
 		--optionsTable.always_boxfirst = true
 		DF:BuildMenu(automarks, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
 		gui.CreateScrollBox(automarks)
-	
+
 	end
     --_G["automarksScroll"] = setmetatable({}, {__index = ScrollBox })
     --automarksScroll:Create(automarks)
