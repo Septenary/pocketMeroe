@@ -1,10 +1,68 @@
 local DF = _G ["DetailsFramework"]
 
 local gui = {}
-local ScrollBox= {}
+gui.scrollBox = {}
+
+local raidIcons = {
+	[1] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1", -- Star
+	[2] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_2", -- Circle
+	[3] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_3", -- Diamond
+	[4] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_4", -- Triangle
+	[5] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_5", -- Moon
+	[6] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_6", -- Square
+	[7] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_7", -- Cross
+	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
+}
+
+local scrollConfig = {
+	scroll_width = 510,
+	scroll_height = 174,
+	scroll_line_height = 18,
+	scroll_lines = 9,
+	backdrop_color = {.4, .4, .4, .2},
+	backdrop_color_highlight = {.4, .4, .4, .6},
+}
+
 
 gui.SetSetting = function(...)
 	gui.OptionsOnClick(nil, nil, ...)
+end
+
+gui.CreateScrollBox = function(self)
+	local scrollBox = DF:CreateScrollBox(self, "$parent.Scrolling", self.markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height, gui.CreateScrollBoxLine, true)
+	DF:ReskinSlider (scrollBox)
+
+    for i = 1, scrollConfig.scroll_lines do
+		local line = scrollBox:CreateLine(self, i)
+        line:SetPoint("TOP", 0, -35 - (i - 1) * scrollConfig.scroll_line_height)
+        line:SetPoint("LEFT", 5, 0)
+        line:SetPoint("RIGHT", -25, 0)
+        line:SetHeight(scrollConfig.scroll_line_height)
+        line._i = i
+    end
+
+	function scrollBox:UpdateList(_, _, option, value, value2, mouseButton)
+		local data = {}
+		local npcData = PocketMeroe.db.profile.markersCustom
+		for id, _ in pairs (npcData) do
+			local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+			-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+			-- i really sure hope the same mob IDs dont appear in multiple instances.
+			-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+			if (zone == value or value =="none" or not value) then
+				if not name then name = id end
+				table.insert(data, {name, zone})
+			end
+		end
+		scrollBox:SetData(data)
+		scrollBox:Refresh()
+	end
+	scrollBox:UpdateList()
+	scrollBox.OnSelect = function(selectedIconId, lineIndex)
+		print("Icon " .. selectedIconId .. " selected for line " .. lineIndex)
+	end
+	gui.scrollBox = scrollBox
+    return scrollBox
 end
 
 gui.SetModifier = function(_, var, value, key)
@@ -16,6 +74,7 @@ gui.SetModifier = function(_, var, value, key)
 		Config [var] [key] = value
 	end
 end
+
 local BuildRaidOptions = function(var)
     local raids = {
         { label = "All",       value = "none" },
@@ -34,7 +93,7 @@ local BuildRaidOptions = function(var)
             label = raid.label,
             value = raid.value,
             onclick = function()
-                ScrollBox:UpdateList(nil, var, true, raid.value)
+                gui.scrollBox:UpdateList(nil, var, true, raid.value)
             end,
         })
     end
@@ -77,103 +136,61 @@ gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	end
 end
 
-function ScrollBox:Create(parent)
-    local scrollConfig = {
-        scroll_width = 510,
-        scroll_height = 174,
-        scroll_line_height = 18,
-        scroll_lines = 9,
-        backdrop_color = {.4, .4, .4, .2},
-        backdrop_color_highlight = {.4, .4, .4, .6},
-    }
-    local backdrop_color = {.8, .8, .8, 0.2}
-    local backdrop_color_on_enter = {.8, .8, .8, 0.4}
+gui.CreateScrollBoxLine = function (scrollBox, index)
+	local line = scrollBox:CreateLine()
 
-    local function LineOnEnter(self)
-        self:SetBackdropColor (unpack (backdrop_color_on_enter))
-    end
+	line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
 
-    local function LineOnLeave(self)
-        self:SetBackdropColor (unpack (backdrop_color))
-    end
+	local marksContainer = CreateFrame("Frame", nil, line)
+	marksContainer:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+	marksContainer:SetPoint("CENTER")
+	marksContainer:EnableMouse(true)
 
-    local scrollBox = DF:CreateScrollBox (parent, "$parent.Scrolling", self.markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height)
-    DF:ReskinSlider (scrollBox)
-    scrollBox.SetPoint("TOPLEFT", parent, "TOPLEFT", 5, -140)
+	local iconSize = 32
+	local icons = {}
+	for id, texture in pairs(raidIcons) do
+		local button = CreateFrame("Button", nil, marksContainer)
+		button:SetSize(iconSize, iconSize)
+        button:SetPoint("LEFT", marksContainer, "LEFT", (id - 1) * (iconSize + 5), 0)
 
-    local function CreateLine(self, index)
-        local line = CreateFrame("Button", "$parent.Line" .. index, self, "BackdropTemplate")
-        line:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -((index-1) * (scrollConfig.scroll_line_height + 1)) - 1)
-        line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+		button.icon = button:CreateTexture(nil, "BACKGROUND")
+		button.icon:SetAllPoints()
+		button.icon:SetTexture(texture)
 
-        line:SetBackdrop({bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true})
-        line:SetBackdropColor(unpack(scrollConfig.backdrop_color))
+		button:SetScript("OnClick", function()
+			if self.onSelect then 
+				self.onSelect(id, index)
+			end
+		end)
 
-        local name = line:CreateFontString("$parent.Name", "OVERLAY", "GameFontNormal")
-        local markerType = line:CreateFontString("$parent.MarkerType", "OVERLAY", "GameFontNormal")
+		icons[id] = button
+	end
 
-        DF:SetFontSize(name, 10)
-        DF:SetFontSize(markerType, 10)
+	line.icons = icons
 
-        name:SetPoint("LEFT", line, "LEFT", 4, 0)
-        markerType:SetPoint("RIGHT", line, "RIGHT", -4, 0)
+	local defaultIconId = 1
+	line:SetBackdrop({
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        edgeSize = 12,
+	})
+	line:SetBackdropBorderColor(1, 1, 1, 0)
 
-        line.name = name
-        line.markerType = markerType
-
-        return line
-    end
-
-    for i = 1, scrollConfig.scroll_lines do
-        local line = scrollBox:CreateLine(CreateLine, i)
-        line:SetPoint("TOP", 0, -35 - (i - 1) * 25)
-        line:SetPoint("LEFT", 5, 0)
-        line:SetPoint("RIGHT", -25, 0)
-        line:SetHeight(25)
-        line._i = i
-
-        local marks = CreateFrame("Frame", nil, line)
-        marks:EnableMouse(true)
-        marks.Background = marks:CreateTexture(nil, "BACKGROUND")
-        marks.Background:SetColorTexture(0, 0, 0, 0.3)
-        marks.Background:SetPoint("TOPLEFT")
-        marks.Background:SetPoint("BOTTOMRIGHT")
-        marks:SetPoint("CENTER", 18, 0)
-        marks:SetSize(20 * 9, 20)
-        marks.list = {}
-
-        for i = 1, 9 do
-            marks.list[i] = marks:CreateTexture(nil, "OVERLAY")
-            marks.list[i]:SetPoint("LEFT", (i - 1) * 20, 0)
-            marks.list[i]:SetSize(18, 18)
-            marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-            if i == 9 then
-                marks.list[i]:SetTexCoord(0.125, 0.1875, 0.5, 0.625)
-                marks.list[i]:SetVertexColor(1, 1, 1, 0.7)
-            end
-        end
-        line.marks = marks
-    end
-    return scrollBox
+	return line
 end
 
-function ScrollBox:UpdateList(_, _, option, value, value2, mouseButton)
-    local data = {}
-    local npcData = Config.markersCustom
-    for id, _ in pairs (npcData) do
-        -- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-        -- i really sure hope the same mob IDs dont appear in multiple instances.
-        -- i think we're lucky enough that raid instances only contain monsters unique to that instance
-        if (npcData[id][3] == value or value =="none" or not value) then
-            local name = npcData[id][5] or id
-            local markerType = ""
-            if type(npcData[id][2])~="table" then markerType = "#".. npcData[id][2] else markerType = "#10" end
-            table.insert(data, {name, markerType})
-        end
-    end
-    ScrollBox:SetData (data)
-    ScrollBox:Refresh()
+gui.updateIconSelector = function(line, selectedIconId)
+	for id, button in pairs(line.icons) do
+		if id == selectedIconId then
+			button:SetBackdropBorderColor(1, 1, 1, 1)
+		else
+			button:SetBackdropBorderColor(1, 1, 1, 0)
+		end
+	end
 end
+
+
+
+
 
 gui.ShowMenu = function()
 	-- toggle scrollConfiguration menu
@@ -398,6 +415,8 @@ gui.ShowMenu = function()
 		}
 		--optionsTable.always_boxfirst = true
 		DF:BuildMenu(automarks, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+		gui.CreateScrollBox(automarks)
+	
 	end
     --_G["automarksScroll"] = setmetatable({}, {__index = ScrollBox })
     --automarksScroll:Create(automarks)
