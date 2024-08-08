@@ -229,7 +229,7 @@ function marks.InitMarking ()
 			local markerPriority = 0
 			for _, t in ipairs(markerType) do
 				local p = marks.markersGetPriority(t)
-				if not markerIndex or (p < markerPriority) then -- ">"
+				if not markerIndex and (p > markerPriority) then
 					markerIndex = marks.markersGetFreeIndex(t, priority, markerCurrent)
 					if (markerIndex ~= nil) then
 						markerPriority = p
@@ -238,13 +238,14 @@ function marks.InitMarking ()
 			end
 			return markerIndex
 		end
+
 		-- Pre-defined exact markers, "rt1-8"
 		local markerExact = strmatch(markerType, "([0-9]+)")
-
 		if markerExact ~= nil then
 			local i = tonumber(markerExact)
 			--print("markerExact:", markerExact)
 			--print("markersUsedPriority[", i, "]:", marks.markersUsedPriority[i])
+			--print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
 			if not marks.markersUsed[i] then
 				return i
 			end
@@ -253,12 +254,14 @@ function marks.InitMarking ()
 			end
 			--return nil
 		end
+		
 		-- Get the first available marker from the given type
 		if not markerType or not Config.markersCustom[markerType] then
 			return nil
 		end
+
 		for i = 8, 1, -1 do
-			if markerCurrent and (i <= markerCurrent) then
+			if markerCurrent and (i < markerCurrent) then
 				return markerCurrent
 			end
 			local s = tostring(i)
@@ -266,7 +269,7 @@ function marks.InitMarking ()
 			--print("markersUsedPriority[", i, "]:", marks.markersUsedPriority[i])
 			--print("mt", Config.markersCustom[markerType], "s", Config.markersCustom[markerType][s])
 			if Config.markersCustom[markerType][i] then
-				--print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
+				print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
 				if not marks.markersUsed[i] then
 					return i
 				end
@@ -289,14 +292,14 @@ function marks.InitMarking ()
 				priorityMax = max(priorityMax, priority)
 			end
 			if (priorityMax > priority) then
-				priority = priority - 0.01
+				priority = priority + 0.01
 			end
 			--if priority then print("Table Priority: ", priority) end
 			return priority
 		end
 		-- Higher priority for exact markers
 		if markerType and strmatch(markerType, "[0-9]+") then
-			return 9-markerType
+			return markerType
 		end
 	end
 
@@ -311,7 +314,6 @@ function marks.InitMarking ()
 			for id, _ in pairs (markersCustom) do
 				local raidIcons, priority, zone, sortCategory, name = unpack(markersCustom[id])
 				if  (id == npcId) then
-					-- lets not invest in debug code too greatly
 					local debugIcons = ""
 					for _, marker in ipairs(raidIcons) do
 						debugIcons = debugIcons .. "{rt" .. marker .. "}"
@@ -383,9 +385,9 @@ function marks.InitMarking ()
 		local markerIndex = marks.markersGetFreeIndex(markerType, priority, markerCurrent)
 		-- print("Priority:", priority)
 		-- print("Current Marker Index:", markerCurrent)
-		-- print("Free Marker Index:", markerIndex)
+		-- print("Marker Index:", markerIndex)
 		if (markerIndex ~= nil) and (markerIndex ~= markerCurrent) then
-			--print("Setting marker for unit:", unitId)
+			--print("Trying to put {rt",markerIndex,"} on rt{",markerCurrent,"}",unitId)
 			marks.markersClearUnit(unitId)
 			SetRaidTarget(unitId, markerIndex)
 			marks.markersAddToUsed(unitId, markerIndex, priority)
