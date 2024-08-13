@@ -1,4 +1,4 @@
-local DF = _G ["DetailsFramework"]
+local DF = _G["DetailsFramework"]
 
 local gui = {}
 gui.scrollBox = {}
@@ -14,103 +14,11 @@ local raidIcons = {
 	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
 }
 
-local scrollConfig = {
-	scroll_width = 510,
-	scroll_height = 174,
-	scroll_line_height = 18,
-	scroll_lines = 9,
-	backdrop_color = {.4, .4, .4, .2},
-	backdrop_color_highlight = {.4, .4, .4, .6},
-}
-
-
-gui.SetSetting = function(...)
+local SetSetting = function(...)
 	gui.OptionsOnClick(nil, nil, ...)
 end
 
-gui.CreateScrollBox = function(self)
-	local scrollBox = DF:CreateScrollBox(self, "$parent.Scrolling", self.markListRefresh, {}, scrollConfig.scroll_width, scrollConfig.scroll_height, scrollConfig.scroll_lines, scrollConfig.scroll_line_height, gui.CreateScrollBoxLine, true)
-	DF:ReskinSlider (scrollBox)
-
-	gui.CreateScrollBoxLine = function (scrollBox, index)
-		local line = scrollBox:CreateLine()
-
-		line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-
-		local marksContainer = CreateFrame("Frame", nil, line)
-		marksContainer:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-		marksContainer:SetPoint("CENTER")
-		marksContainer:EnableMouse(true)
-
-		local iconSize = 32
-		local icons = {}
-		for id, texture in pairs(raidIcons) do
-			local button = CreateFrame("Button", nil, marksContainer)
-			button:SetSize(iconSize, iconSize)
-			button:SetPoint("LEFT", marksContainer, "LEFT", (id - 1) * (iconSize + 5), 0)
-
-			button.icon = button:CreateTexture(nil, "BACKGROUND")
-			button.icon:SetAllPoints()
-			button.icon:SetTexture(texture)
-
-			button:SetScript("OnClick", function()
-				if self.onSelect then
-					self.onSelect(id, index)
-				end
-			end)
-
-			icons[id] = button
-		end
-
-		line.icons = icons
-
-		local defaultIconId = 1
-		line:SetBackdrop({
-			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-			edgeSize = 12,
-		})
-		line:SetBackdropBorderColor(1, 1, 1, 0)
-
-		return line
-	end
-
-
-
-    for i = 1, scrollConfig.scroll_lines do
-		local line = scrollBox:CreateLine(gui.CreateScrollBoxLine, i)
-        line:SetPoint("TOP", 0, -35 - (i - 1) * scrollConfig.scroll_line_height)
-        line:SetPoint("LEFT", 5, 0)
-        line:SetPoint("RIGHT", -25, 0)
-        line:SetHeight(scrollConfig.scroll_line_height)
-        line._i = i
-    end
-
-
-	scrollBox.OnSelect = function(selectedIconId, lineIndex)
-		print("Icon " .. selectedIconId .. " selected for line " .. lineIndex)
-	end
-	gui.scrollBox = scrollBox
-    return scrollBox
-end
-
-function gui.scrollBox:UpdateList(_, _, option, value, value2, mouseButton)
-	local data = {}
-	local npcData = PocketMeroe.db.profile.markersCustom
-	for id, _ in pairs (npcData) do
-		local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
-		-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-		-- i really sure hope the same mob IDs dont appear in multiple instances.
-		-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-		if (zone == value or value =="none" or not value) then
-			if not name then name = id end
-			table.insert(data, {name, zone})
-		end
-	end
-	gui.scrollBox:SetData(data)
-	gui.scrollBoxscrollBox:Refresh()
-end
-
-gui.SetModifier = function(_, var, value, key)
+local SetModifier = function(_, var, value, key)
 	if Config[var] then
 		Config [var].none = false
 		Config [var].alt = false
@@ -118,32 +26,6 @@ gui.SetModifier = function(_, var, value, key)
 		Config [var].shift = false
 		Config [var] [key] = value
 	end
-end
-
-local BuildRaidOptions = function(var)
-    local raids = {
-        { label = "All",       value = "none" },
-        { label = "Zul'Gurub", value = "ZG" },
-        { label = "Ruins of Ahn'Qiraj", value = "AQ20" },
-        { label = "Molten Core", value = "MC" },
-        { label = "Blackwing Lair", value = "BWL" },
-        { label = "Temple of Ahn'Qiraj", value = "AQ40" },
-        { label = "Naxxramas", value = "NAXX" },
-    }
-
-    local result = {}
-
-    for _, raid in ipairs(raids) do
-        table.insert(result, {
-            label = raid.label,
-            value = raid.value,
-            onclick = function()
-                gui.scrollBox:UpdateList(nil, var, true, raid.value)
-            end,
-        })
-    end
-
-    return result
 end
 
 local BuildModifierOptions = function(var)
@@ -155,7 +37,7 @@ local BuildModifierOptions = function(var)
             label = modifier:gsub("^%l", string.upper),  -- Capitalize the first letter
             value = modifier,
             onclick = function()
-                gui.SetModifier(nil, var, true, modifier)
+                SetModifier(nil, var, true, modifier)
             end,
         })
     end
@@ -180,19 +62,6 @@ gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 		end
 	end
 end
-
-
-
-gui.updateIconSelector = function(line, selectedIconId)
-	for id, button in pairs(line.icons) do
-		if id == selectedIconId then
-			button:SetBackdropBorderColor(1, 1, 1, 1)
-		else
-			button:SetBackdropBorderColor(1, 1, 1, 0)
-		end
-	end
-end
-
 
 gui.ShowMenu = function()
 	-- toggle scrollConfiguration menu
@@ -222,8 +91,6 @@ gui.ShowMenu = function()
 	local selectedTabIndicatorDefaultColor = {.4, .4, .4}
 	local selectedTabIndicatorColor = {1, 1, 0}
 
-	local startX = 160
-
 	--build the options window
 	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "PocketMeroeOptions")
 
@@ -243,8 +110,10 @@ gui.ShowMenu = function()
     statusBar.authorInfo = authorInfo
     DF:ApplyStandardBackdrop(statusBar)
 
-    local bottomGradient = DF:CreateTexture(optionsFrame, {gradient = "vertical", fromColor = {0, 0, 0, 0.3}, toColor = "transparent"}, 1, 100, "artwork", {0, 1, 0, 1}, "bottomGradient")
-    bottomGradient:SetAllPoints(optionsFrame, 1)
+	local bottomGradient = DF:CreateTexture(optionsFrame,
+		{ gradient = "vertical", fromColor = { 0, 0, 0, 0.3 }, toColor = "transparent" }, 1, 100, "artwork", { 0, 1, 0, 1 },
+		"bottomGradient")
+	bottomGradient:SetAllPoints(optionsFrame, 1)
     bottomGradient:SetPoint("bottom-top", statusBar)
 
 	local tabList = {
@@ -278,15 +147,15 @@ gui.ShowMenu = function()
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "$parent.tabContainer", tabList, optionsTable, hookList)
-
+	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "$parent.tabContainer", tabList, optionsTable,
+		hookList)
 	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
 	tabContainer:SetSize(optionsFrame:GetSize())
 	tabContainer:Show()
 
-
-	local backdropTable = {edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile = [[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true}
-	local backdropColor = {DF:GetDefaultBackdropColor()}
+	local backdropTable = { edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile =
+	[[Interface\Tooltips\UI-Tooltip-Background]], tileSize = 64, tile = true }
+	local backdropColor = { DF:GetDefaultBackdropColor() }
 	local backdropBorderColor = {0, 0, 0, 1}
 	tabContainer:SetTabFramesBackdrop(backdropTable, backdropColor, backdropBorderColor)
 
@@ -343,88 +212,260 @@ gui.ShowMenu = function()
 	local general = tabContainer.AllFrames[1]
 	local automarks = tabContainer.AllFrames[2]
 	local tabFrameHeight = general:GetHeight()
-	--- meroe.general
-	do
-		local optionsTable = {
-			always_boxfirst = true,
-			{
-				type = "label",
-				get = function() return "Functionality" end,
-				text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
-			},
-			{
-				type = "toggle",
-				get = function()
-					return Config.use_mouseover
-				end,
-				set = function(self, fixedparam, value)
-					gui.SetSetting("use_mouseover", Config.use_mouseover)
-				end,
-				name = "Mouseover",
-				desc = "Allow marking by mousing over mobs.",
-			},
-			{
-				type = "toggle",
-				get = function()
-					return Config.require_leader
-				end,
-				set = function(self, fixedparam, value)
-					gui.SetSetting("require_leader", Config.require_leader)
-				end,
-				name = "Require Leader",
-				desc = "If toggled then you must be the leader to mark mobs.",
-			},
-			{
-				type = "select",
-				get = function()
-					return MarkingModifier.none and "none" or MarkingModifier.alt and "alt" or MarkingModifier.ctrl and "ctrl" or MarkingModifier.shift and "shift"
-				end,
-				values = function () return BuildModifierOptions("marking_modifier") end,
-				name = "Marking Modifier",
-				desc = "Require this modifier key to be held down for mouseover marking to work. ",
-			},
-			{
-				type = "select",
-				get = function()
-					return ClearModifier.none and "none" or ClearModifier.alt and "alt" or ClearModifier.ctrl and "ctrl" or ClearModifier.shift and "shift"
-				end,
-				values = function () return BuildModifierOptions("clear_modifier") end,
-				name = "Clear Modifier",
-				desc = "Require this modifier key to be held down to clear existing marks. ",
-			},
-			{type = "blank"},
-		}
-		DF:BuildMenu(general, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
+	---  [meroe.general]  ---
+	local generalOptionsTable = {
+		always_boxfirst = true,
+		{
+			type = "label",
+			get = function() return "Functionality" end,
+			text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
+		},
+		{
+			type = "toggle",
+			get = function()
+				return Config.use_mouseover
+			end,
+			set = function(self, fixedparam, value)
+				SetSetting("use_mouseover", Config.use_mouseover)
+			end,
+			name = "Mouseover",
+			desc = "Allow marking by mousing over mobs.",
+		},
+		{
+			type = "toggle",
+			get = function()
+				return Config.require_leader
+			end,
+			set = function(self, fixedparam, value)
+				SetSetting("require_leader", Config.require_leader)
+			end,
+			name = "Require Leader",
+			desc = "If toggled then you must be the leader to mark mobs.",
+		},
+		{
+			type = "select",
+			get = function()
+				return MarkingModifier.none and "none" or MarkingModifier.alt and "alt" or MarkingModifier.ctrl and "ctrl" or MarkingModifier.shift and "shift"
+			end,
+			values = function () return BuildModifierOptions("marking_modifier") end,
+			name = "Marking Modifier",
+			desc = "Require this modifier key to be held down for mouseover marking to work. ",
+		},
+		{
+			type = "select",
+			get = function()
+				return ClearModifier.none and "none" or ClearModifier.alt and "alt" or ClearModifier.ctrl and "ctrl" or ClearModifier.shift and "shift"
+			end,
+			values = function () return BuildModifierOptions("clear_modifier") end,
+			name = "Clear Modifier",
+			desc = "Require this modifier key to be held down to clear existing marks. ",
+		},
+		{type = "blank"},
+	}
+	DF:BuildMenu(general, generalOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
+		profileCallback)
 
+	--- [meroe.automarks] ---
+	function PocketMeroe.ShowMarkScroll()
+		if automarks.scroll then
+			automarks.scroll:Show()
+			return
+		end
+--[[ 		local backdrop_color = {.8, .8, .8, 0.2}
+		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
+
+		local line_onenter = function (self)
+			self:SetBackdropColor (unpack (backdrop_color_on_enter))
+		end
+
+		local line_onleave = function (self)
+			self:SetBackdropColor (unpack (backdrop_color))
+		end ]]
+
+		---(self:df_scrollbox, data:table, offset:number, numlines:number)
+		local refreshGrid = function(optionButton, data)
+			optionButton.text:SetText(data.text)
+			optionButton:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+			optionButton:Show()
+		end
+
+		-- TODO: 
+		-- % over columnIndex
+		-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
+		-- data columns & refresh with if (npcData[id].instance[1] == value [+checks])
+
+
+		--declare a function to create a column within a scroll line
+		--this function will receive the line, the line index within the scrollbox and the column index within the line
+		local createColumnFrame = function(line, lineIndex, columnIndex)
+			local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+			optionButton:SetSize(100, 20)
+			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			optionButton.text:SetPoint("center", optionButton, "center", 0, 0)
+			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DetailsFramework:ApplyStandardBackdrop(optionButton)
+
+			return optionButton
+		end
+
+		local options = {
+			width = 600,
+			height = 400,
+			--amount of horizontal lines
+			line_amount = 12,
+			--amount of columns per line
+			columns_per_line = 4,
+			--height of each line
+			line_height = 30,
+			auto_amount = false,
+			no_scroll = false,
+			no_backdrop = false,
+		}
+		local data = {
+			{text = "1"}, {text = "2"}, {text = "3"}, {text = "4"}, {text = "5"}, {text = "6"}, {text = "7"}, {text = "8"}, {text = "9"}, {text = "10"},
+			{text = "11"}, {text = "12"}, {text = "13"}, {text = "14"}, {text = "15"}, {text = "16"}, {text = "17"}, {text = "18"}, {text = "19"}, {text = "20"},
+			{text = "21"}, {text = "22"}, {text = "23"}, {text = "24"}, {text = "25"}, {text = "26"}, {text = "27"}, {text = "28"}, {text = "29"}, {text = "30"},
+			{text = "31"}, {text = "32"}, {text = "33"}, {text = "34"}, {text = "35"}, {text = "36"}, {text = "37"}, {text = "38"}, {text = "39"}, {text = "40"},
+			{text = "41"}, {text = "42"}, {text = "43"}, {text = "44"}, {text = "45"}, {text = "46"}, {text = "47"}, {text = "48"}, {text = "49"}, {text = "50"},
+			{text = "51"}, {text = "52"}, {text = "53"}, {text = "54"}, {text = "55"}, {text = "56"}, {text = "57"}, {text = "58"}, {text = "59"}, {text = "60"},
+			{text = "61"}, {text = "62"}, {text = "63"}, {text = "64"}, {text = "65"}, {text = "66"}, {text = "67"}, {text = "68"}, {text = "69"}, {text = "70"},
+			{text = "71"}, {text = "72"}, {text = "73"}, {text = "74"}, {text = "75"}, {text = "76"}, {text = "77"}, {text = "78"}, {text = "79"}, {text = "80"},
+			{text = "81"}, {text = "82"}, {text = "83"}, {text = "84"}, {text = "85"}, {text = "86"}, {text = "87"}, {text = "88"}, {text = "89"}, {text = "90"},
+			{text = "91"}, {text = "92"}, {text = "93"}, {text = "94"}, {text = "95"}, {text = "96"}, {text = "97"}, {text = "98"}, {text = "99"}, {text = "100"},
+		}
+
+		automarks.scroll = 	DF:CreateGridScrollBox(automarks, "$parentScroll", refreshGrid, data, createColumnFrame, options)
+		DF:ReskinSlider(automarks.scroll)
+		automarks.scroll:SetPoint("center", automarks, "center", 5, -140)
+
+		--create the scroll widgets
+--[[ 			local createLine = function(self, index)
+			local line = CreateFrame("button", "$parentLine" .. index, self, "BackdropTemplate")
+			line:SetPoint("topleft", self, "topleft", 1, -((index-1)*(scrollConfig.scroll_line_height+1)) - 1)
+			line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
+			line:SetScript("OnEnter", line_onenter)
+			line:SetScript("OnLeave", line_onleave)
+
+			line:SetBackdrop({bgFile = [ [Interface\Tooltips\UI-Tooltip-Background] ], tileSize = 64, tile = true})
+			line:SetBackdropColor(unpack(scrollConfig.backdrop_color))
+
+			local name = line:CreateFontString("$parentName", "OVERLAY", "GameFontNormal")
+			local zone = line:CreateFontString("$parentName", "OVERLAY", "GameFontNormal")
+
+			DF:SetFontSize(name, 10)
+			DF:SetFontSize(zone, 10)
+
+			local icon = line:CreateTexture("$parentIcon", "OVERLAY")
+			icon:SetSize(scrollConfig.scroll_line_height - 2, scrollConfig.scroll_line_height - 2)
+			icon:SetTexCoord(.1, .9, .1, .9)
+
+
+			icon:SetPoint("left", line, "left", 2, 0)
+			name:SetPoint("left", icon, "right", 4, 0)
+
+
+			zone:SetPoint("right", line, "right", -26, 0)
+
+			line.icon = icon
+			line.name = name
+			line.zone = zone
+
+			return line
+		end
+		for i = 1, scrollConfig.scroll_lines do
+			automarks.scroll:CreateLine(createLine, i)
+		end ]]
+
+		function automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
+				if (not automarks.scroll:IsShown()) then
+					return
+				end
+
+				-- local npcData = PocketMeroe.db.profile.markersCustom
+				-- for id, _ in pairs (npcData) do
+				-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+				-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+				-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
+				-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+				-- 	if (zone == value or value =="none" or not value) then
+				-- 		if not name then name = id end
+				-- 		--table.insert(data, {name, zone})
+				-- 	end
+				-- end
+				-- --automarks.scroll:SetData(data)
+				automarks.scroll:Refresh()
+		end
 	end
 
-	--- meroe.automarks
-	do
-		-- local markers = Config.raidMarkers
+	PocketMeroe.ShowMarkScroll()
 
-		local optionsTable = {
-			always_boxfirst = false,
-			{
-				type = "select",
-				get = function()
-					return "none" or "ZG" or "AQ20" or "MC" or "BWL"
-				end,
-				values = function () return BuildRaidOptions(Config.var) end,
-				name = "Raid:",
-				--desc = "",
-
-			},
+	local BuildRaidOptions = function(var, frame)
+		local raids = {
+			{ label = "All",                 value = "none" },
+			{ label = "Zul'Gurub",           value = "ZG" },
+			{ label = "Ruins of Ahn'Qiraj",  value = "AQ20" },
+			{ label = "Molten Core",         value = "MC" },
+			{ label = "Blackwing Lair",      value = "BWL" },
+			{ label = "Temple of Ahn'Qiraj", value = "AQ40" },
+			{ label = "Naxxramas",           value = "NAXX" },
 		}
-		--optionsTable.always_boxfirst = true
-		DF:BuildMenu(automarks, optionsTable, 10, -100, tabFrameHeight, false, options_text_template, options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template, profileCallback)
-		gui.CreateScrollBox(automarks)
 
+		local result = {}
+
+		for _, raid in ipairs(raids) do
+			table.insert(result, {
+				label = raid.label,
+				value = raid.value,
+				onclick = function()
+					automarks.scroll:UpdateList(nil, var, true, raid.value)
+				end,
+			})
+		end
+		return result
 	end
-    --_G["automarksScroll"] = setmetatable({}, {__index = ScrollBox })
-    --automarksScroll:Create(automarks)
-    --automarksScroll:Show()
 
---[[ 	
+	local automarksOptionsTable = {
+		always_boxfirst = false,
+		{
+			type = "select",
+			get = function()
+				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
+			end,
+			values = function () return BuildRaidOptions(Config.var, automarks.scroll) end,
+			name = "Raid:",
+			--desc = "",
+		},
+	}
+	automarks.scroll:UpdateList()
+	DF:BuildMenu(automarks, automarksOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
+		profileCallback)
+
+	---
+	PocketMeroeOptions:Hide();
+	return PocketMeroeOptions;
+end
+
+gui.MenuToggle = function ()
+	local menu = PocketMeroeOptions or gui.ShowMenu();
+	if (menu) then
+		menu:SetShown(not menu:IsShown());
+		--needs to visually reset after closing the options menu
+--[[ 		if automarks.scroll then
+			automarks.scroll:UpdateList(nil, config.profile.var, true, "none");
+		end ]]
+	end
+end
+
+PocketMeroe.gui = gui
+
+--[[
 		TODO: Add "BossMods" tab to control boss encounter features.
 		TODO: Implement boss encounter functionalities.
 		TODO: Create frames for these and integrate with event handlers.
@@ -438,19 +479,3 @@ gui.ShowMenu = function()
 
 		TODO: Incorporate raid role optimizer using officer notes.
 ]]
-	PocketMeroeOptions:Hide();
-	return PocketMeroeOptions;
-end
-
-gui.MenuToggle = function ()
-	local menu = PocketMeroeOptions or gui.ShowMenu();
-	if (menu) then
-		menu:SetShown(not menu:IsShown());
-		--needs to visually reset after closing the options menu
---[[ 		if automarksScroll then
-			automarksScroll:UpdateList(nil, config.profile.var, true, "none");
-		end ]]
-	end
-end
-
-PocketMeroe.gui = gui
