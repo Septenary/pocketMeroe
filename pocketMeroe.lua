@@ -39,11 +39,11 @@ local default_config = {
 			shift = false,
 		},
 		markersCustom = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
-		[1706]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
-		[1707]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
-		[1708]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
-		[3501]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
-		[4624]  = {{1, 2, 3, 4, 5, 6, 7, 8},9,"none", "Boss", "AA"},
+		[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+		[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+		[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+		[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+		[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
 		[14750] = {{},1,"ZG", "Trash", "Gurubashi Bat Rider"},
 		[14883] = {{},1,"ZG", "Trash", "Voodoo Slave"},
 		[11830] = {{},1,"ZG", "Trash", "Hakkari Priest"},
@@ -51,7 +51,7 @@ local default_config = {
 		[11671] = {{},1,"MC", "Trash", "Core Hound"},
 		[12076] = {{},1,"MC", "Trash", "Lava Elemental"},
 		[12100] = {{},1,"MC", "Trash", "Lava Reaver"},
-		[11659] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"MC", "Trash", "Molten Destroyer"},
+		[11659] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Destroyer"},
 		[12118] = {{5},1,"MC", "Boss", "Lucifron"},
 		[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
 		[11982] = {{},1,"MC", "Boss", "Magmadar"},
@@ -62,7 +62,7 @@ local default_config = {
 		[11672] = {{},1,"MC", "Trash", "Core Rager"},
 		[11662] = {{},1,"MC", "Trash", "Flamewaker Priest"},
 		[11663] = {{},1,"MC", "Trash", "Flamewaker Healer"},
-		[12468] = {{1, 2, 3, 4, 5, 6, 7, 8},2,"BWL", "Trash", "Death Talon Hatcher"},
+		[12468] = {{8,7,6,5,4,3,2,1},2,"BWL", "Trash", "Death Talon Hatcher"},
 		[12458] = {{1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster"},
 		[12459] = {{},1,"BWL", "Trash", "Blackwing Warlock"},
 		[12457] = {{},1,"BWL", "Trash", "Blackwing Spellbinder"},
@@ -70,8 +70,8 @@ local default_config = {
 		[12463] = {{8, 7},1,"BWL", "Trash", "Death Talon Flamescale"},
 		[12464] = {{6, 5},1,"BWL", "Trash", "Death Talon Seether"},
 		[12465] = {{4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin"},
-		[12420] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"BWL", "Ads", "Blackwing Mage"},
-		[15391] = {{1, 2, 3, 4, 5, 6, 7, 8},1,"AQ20", "Ads", "Buru Egg"},
+		[12420] = {{8,7,6,5,4,3,2,1},1,"BWL", "Ads", "Blackwing Mage"},
+		[15391] = {{8,7,6,5,4,3,2,1},1,"AQ20", "Ads", "Buru Egg"},
 		[15392] = {{1},1,"AQ20", "Ads", "Captian Qeez"},
 		[15389] = {{2},1,"AQ20", "Ads", "Captian Tuubid"},
 		[15390] = {{3},1,"AQ20", "Ads", "Captian Drenn"},
@@ -158,8 +158,8 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
         eventframe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
         eventframe:SetScript("OnEvent", PocketMeroe_OnEvent)
 		if PocketMeroe and PocketMeroe.marks then
-			PocketMeroe.marks.InitMarking()
 			PocketMeroe.marks.InitTooltips()
+			PocketMeroe.marks.InitMarking()
 		else
 			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not initialized.")
 		end
