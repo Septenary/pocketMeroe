@@ -2,6 +2,9 @@
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
 local marks = {}
+local DF = _G["DetailsFramework"]
+-- markerBias makes a specific mob a higher priority to mark.
+
 
 function marks.InitTooltips ()
 	if not PocketMeroeDB then
@@ -33,7 +36,6 @@ function marks.InitTooltips ()
 						return
 					end
 					local markerType, markerBias = marks.markersGetTypeForNpc(npc_id, unitName)
-					--print(markerType, markerBias)
 					if (markerType ~= nil) then
 						--print("Trying to mark ", npc_id)
 						marks.markersSetUnit(unitId, markerType, markerBias)
@@ -167,6 +169,7 @@ function marks.InitMarking ()
 		if not index then
 			index = GetRaidTargetIndex(unitId)
 		end
+
 		if not priority then
 			local markerType = marks.markersGetTypeForUnit(unitId)
 			priority = marks.markersUsedPriority[index] or marks.markersGetPriority(markerType)
@@ -240,9 +243,11 @@ function marks.InitMarking ()
 		end
 
 		-- Pre-defined exact markers, "rt1-8"
-		local markerExact = strmatch(markerType, "([0-9]+)")
-		if markerExact ~= nil then
-			local i = tonumber(markerExact)
+		if markerType ~= nil then
+			local i = tonumber(markerType)
+			if markerCurrent and (i < markerCurrent) then
+				return markerCurrent
+			end
 			--print("markerExact:", markerExact)
 			--print("markersUsedPriority[", i, "]:", marks.markersUsedPriority[i])
 			--print(i, "?", marks.markersUsed[i] or false, marks.markersUsedPriority[i] or 0, "vs", priority)
@@ -260,7 +265,7 @@ function marks.InitMarking ()
 			return nil
 		end
 
-		for i = 8, 1, -1 do
+		for i = 1, 8 do
 			if markerCurrent and (i < markerCurrent) then
 				return markerCurrent
 			end
@@ -283,26 +288,20 @@ function marks.InitMarking ()
 
 	-- Recursively search for an appropriate priority. allows for layering with marks
 	marks.markersGetPriority = function(markerType)
-		if (type(markerType) == "table") then
-			-- Get the lowest priority from a list of marker types
-			local priority = 20
-			local priorityMax = 0
+		if type(markerType) == "table" then
+			-- Get the maximum priority from a list of marker types
+			local priority = -math.huge  -- Start with the lowest possible value
 			for _, t in ipairs(markerType) do
-				priority = min(marks.markersGetPriority(t), priority)
-				priorityMax = max(priorityMax, priority)
+				local tPriority = marks.markersGetPriority(t)
+				priority = math.max(tPriority, priority)
 			end
-			if (priorityMax > priority) then
-				priority = priority + 0.01
-			end
-			--if priority then print("Table Priority: ", priority) end
 			return priority
 		end
-		-- Higher priority for exact markers
-		if markerType and strmatch(markerType, "[0-9]+") then
-			return markerType
-		end
+		
+		-- Handle the case where markerType is not a table
+		-- This should be adjusted based on how you want to handle non-table inputs
+		return markerType  -- Assuming markerType is a numeric value indicating priority
 	end
-
 
 	-- gets some string of marks that should be used. 
 	-- defaults to {8,7,6,5,4,3,2,1} if mob is in markersCustom
