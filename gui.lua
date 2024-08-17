@@ -14,6 +14,9 @@ local raidIcons = {
 	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
 }
 
+gui.autoMarkState = gui.autoMarkState or {}
+
+
 local SetSetting = function(...)
 	gui.OptionsOnClick(nil, nil, ...)
 end
@@ -45,27 +48,204 @@ local BuildModifierOptions = function(var)
     return result
 end
 
-local BuildMarksBar = function(parent)
-	local marks = CreateFrame("Frame",nil,parent)
-	marks:EnableMouse(true)
-	marks.Background = marks:CreateTexture(nil,"BACKGROUND")
-	marks.Background:SetColorTexture(0,0,0,.3)
-	marks.Background:SetPoint("TOPLEFT")
-	marks.Background:SetPoint("BOTTOMRIGHT")
-	marks:SetPoint("CENTER",18,0)
-	marks:SetSize(20*9,20)
-	marks.list = {}
-	for i=1,9 do
-		marks.list[i] = marks:CreateTexture(nil,"OVERLAY")
-		marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
-		marks.list[i]:SetSize(18,18)
-		marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-		if i == 9 then
-			marks.list[i]:SetTexCoord(0.125,0.1875,0.5,0.625)
-			marks.list[i]:SetVertexColor(1,1,1,0.7)			
+
+local function GetCursorPos(frame)
+	local x_f,y_f = GetCursorPosition()
+	local s = frame:GetEffectiveScale()
+	x_f, y_f = x_f/s, y_f/s
+	local x,y = frame:GetLeft(),frame:GetTop()
+	x = x_f-x
+	y = (y_f-y)*(-1)
+	return x,y
+end
+
+local pm_data_names,pm_data_names_state = {},{}
+function UpdateData()
+	wipe(pm_data_names)
+	wipe(pm_data_names_state)
+	if type(gui.markMax) ~= "number" or gui.markMax < 100 then
+		gui.markMax = 100
+	end
+	if type(gui.markMax) == "number" and gui.markMax > 1000 then
+		gui.markMax = 1000
+	end
+	local lastNonZeroIndex = 0
+	for i=1,gui.markMax do
+		--local name = gui.autoMarkNames[i]
+		local name = PocketMeroe.db.profile.markersCustom[1706][5] -- must be string!
+		if name and name ~= "" then
+			if name:find("^%-") then
+				name = name:gsub("^%-","")
+			end
+			pm_data_names[ (name):lower() ] = true
+			pm_data_names_state[ (name):lower() ] = gui.autoMarkState[i] or "87654321"
+			lastNonZeroIndex = i
 		end
 	end
-	return marks
+	if lastNonZeroIndex < 100 then
+		lastNonZeroIndex = 100
+	end
+	gui.markMax = ceil(lastNonZeroIndex / 50) * 50
+end
+
+local function Tab2LineUpdate(self)
+	local num = self._i
+	--self.edit:SetText(gui.autoMarkNames[num] or "")
+	--self.marks.state = gui.autoMarkState[num] or "87654321"
+	
+	for i=1,#self.marks.list do
+		local mark = self.marks.state:sub(i,i)
+		if mark ~= "" then
+			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,19))
+		else
+			self.marks.list[i]:SetTexture()
+		end
+		if mark == self.marks.picked_mark then
+			self.marks.list[i]:SetAlpha(.7)
+		else
+			self.marks.list[i]:SetAlpha(1)
+		end
+		self.marks.list[i]:SetShown(i <= 8 or self.isExpand)
+	end
+	if self.isExpand and not self.isExpanded then
+		self.marks:SetWidth(20*17)
+		self.edit:Size(470-20*8,20)
+		self.isExpanded = true
+	elseif not self.isExpand and self.isExpanded then
+		self.marks:SetWidth(20*9)
+		self.edit:Size(470,20)
+		self.isExpanded = false
+	end
+end
+
+local function Tab2MarksOnUpdate(self)
+	if not IsMouseButtonDown(1) then
+		self:SetScript("OnUpdate",nil)
+		self.picked = nil
+		self.picked_mark = nil
+		gui.autoMarkState[self:GetParent()._i] = self.state
+		self:GetParent():Update()
+		UpdateData()
+		return
+	end
+	local currCursor = 1
+	for i=1,self.state_len do
+		local x,y = GetCursorPos(self.list[i])
+		if x < 0 then
+			break
+		end
+		currCursor = i
+	end
+	local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
+	if newState ~= self.state then
+		self.state = newState
+		self:GetParent():Update()
+	end
+end
+local function Tab2MarksOnMouseDown(self,button)
+	self.picked_mark = nil
+	if button == "LeftButton" then
+		--print("LMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		if x >= 0 and x <= 19 then
+			self.state = self:GetParent().isExpand and "876543219ABCDEFG" or "87654321"
+			gui.autoMarkState[self:GetParent()._i] = self.state
+			self:GetParent():Update()
+			UpdateData()
+			return
+		end
+	
+		self.picked = nil
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				if x >= 0 and x <= 19 then
+					self.picked = i
+					self.saved_state = self.state
+					self.state_len = self.state:len()
+					if self.state_len < i then
+						return
+					end
+					break
+				end
+			end
+		end
+		if self.picked then
+			self.picked_mark = self.saved_state:sub(self.picked,self.picked)
+			self:SetScript("OnUpdate",Tab2MarksOnUpdate)
+			self:GetParent():Update()
+		end
+	elseif button == "RightButton" then
+		--print("RMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		if x >= 0 and x <= 19 then
+			--self:GetParent().isExpand = not self:GetParent().isExpand
+			self:GetParent():Update()
+			return
+		end
+
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				if x >= 0 and x <= 19 then
+					local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
+					self.state = newState
+					gui.autoMarkState[self:GetParent()._i] = newState
+					self:GetParent():Update()
+					UpdateData()
+					break
+				end
+			end
+		end			
+	end
+end
+-- local function Tab2MarksListOnEnter(self)
+-- 	self:GetParent().Background:Show()
+-- end
+-- local function Tab2MarksListOnLeave(self)
+-- 	self:GetParent().Background:Hide()
+-- end
+
+
+local BuildMarksBar = function(parent)
+	for i=1,9 do
+		local marks = CreateFrame("Frame",nil,parent)
+		marks:EnableMouse(true)
+		marks.Background = marks:CreateTexture(nil,"BACKGROUND")
+		marks.Background:SetColorTexture(0,0,0,.3)
+		marks.Background:SetPoint("CENTER")
+		marks.Background:SetPoint("CENTER")
+		marks:SetPoint("RIGHT",-5,0)
+		marks:SetSize(20*9,20)
+		marks.list = {}
+		for i=1,16 do
+			marks.list[i] = marks:CreateTexture(nil,"ARTWORK")
+			marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
+			marks.list[i]:SetSize(18,18)
+			marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(marks.list[i], i)
+			marks.list[i]:SetShown(i <= 8)
+		end
+		marks.list.refresh = marks:CreateTexture(nil,"ARTWORK")
+		marks.list.refresh:SetPoint("RIGHT",0,0)
+		marks.list.refresh:SetSize(18,18)
+		marks.list.refresh:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+		marks.list.refresh:SetTexCoord(0.125,0.1875,0.5,0.625)
+		marks.list.refresh:SetVertexColor(1,1,1,0.7)	
+	
+		marks:SetScript("OnMouseDown",Tab2MarksOnMouseDown)
+		
+		marks.state = gui.autoMarkState[i] or "87654321"
+		
+		parent.marks = marks
+		
+		parent.Update = Tab2LineUpdate
+		parent:Update()
+		
+		-- marks:SetScript("OnEnter",Tab2MarksListOnEnter)
+		-- marks:SetScript("OnLeave",Tab2MarksListOnLeave)
+	end
 end
 
 gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
@@ -365,6 +545,7 @@ gui.ShowMenu = function()
 				DetailsFramework:ApplyStandardBackdrop(optionButton)
 				optionButton:SetSize(100, 20)
 
+				line._i = lineIndex
 				return optionButton
 			end
 		end
