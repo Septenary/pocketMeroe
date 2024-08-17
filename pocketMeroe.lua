@@ -11,7 +11,7 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
 local _, PocketMeroe = ...
-local version = "v0.0.6"
+local version = "v0.0.7"
 local config = {};
 
 local main = {}
@@ -38,7 +38,7 @@ local default_config = {
 			ctrl = false,
 			shift = false,
 		},
-		markersCustom = { -- [mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
+		markersCustom = { -- [mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
 		[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
 		[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
 		[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
@@ -80,12 +80,20 @@ local default_config = {
 		[15385] = {{6},1,"AQ20", "Ads", "Major Pakkon"},
 		[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
 		[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
-		[15264] = {{4,3,2,1},1,"AQ40", "Trash", "Anubisath Sentinel"},
-		[15981] = {{4,3,2,1},1,"NAXX", "Trash", "Naxxramas Acolyte"},
-		[16452] = {{4,3,2,1},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
-		[16017] = {{4,3,2,1},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
-		[16021] = {{4,3,2,1},1,"NAXX", "Trash", "Living Monstrosity"},
-		[16020] = {{4,3,2,1},1,"NAXX", "Trash", "Mad Scientist"},
+		[15246] = {{8,7},1,"AQ40", "Trash", "Qiraji Mindslayer"},
+		[15247] = {{8,7},1,"AQ40", "Trash", "Qiraji Brainwasher"},
+		[15312] = {{8,7},1,"AQ40", "Trash", "Obsidian Nullifier"},
+		[15262] = {{8,7},1,"AQ40", "Trash", "Obsidian Eradicator"},
+		[15233] = {{8,7,6,5,4,3,2,1},1,"AQ40", "Trash", "Vekniss Guardian"},
+		[15230] = {{8,7,6},1,"AQ40", "Trash", "Vekniss Warrior"},
+		[15252] = {{2,1},1,"AQ40", "Trash", "Qiraji Champion"},
+		[15249] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Lasher"},
+		[15250] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Slayer"},
+		[15981] = {{8,7,6,5,4},1,"NAXX", "Trash", "Naxxramas Acolyte"},
+		[16452] = {{8,7},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
+		[16017] = {{8,7,6,5},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
+		[16021] = {{8,1},1,"NAXX", "Trash", "Living Monstrosity"},
+		[16020] = {{7,6,5,4,3,2},1,"NAXX", "Trash", "Mad Scientist"},
 		[16447] = {{8,7,6,5},3,"NAXX", "Trash", "Plagued Ghoul"},
 		}
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
@@ -165,6 +173,70 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
 		end
 	end
 end
+--[mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
+
+PocketMeroe.ProfileSet = function (id,var, arg)
+	if not PocketMeroeDB then
+		print("PocketMeroe.lua: Database not loaded! Stopping!")
+		return
+	end
+
+	id = tonumber(id)
+    if not id or id <= 0 then
+        print("PocketMeroe.lua: mobID expects a mobID!")
+        return
+    end
+    if not arg then
+        print("PocketMeroe.lua: ProfileSet expects an argument!")
+        return
+    end
+    -- Ensure 'id' is a valid number and convert to integer
+
+
+    -- Ensure markersCustom is properly initialized
+    if not PocketMeroe.db.profile.markersCustom then
+        PocketMeroe.db.profile.markersCustom = {}
+    end
+    if not PocketMeroe.db.profile.markersCustom[id] then
+        PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
+    end
+
+	local functionMapping = {
+		customMarks = function(table)
+			if not table or (type(table) ~= "table") then
+				print("PocketMeroe.lua: ProfileSet(\"customMarks\") expects a table!")
+				return
+			end
+			PocketMeroe.db.profile.markersCustom[id][1] = arg -- expects an actual table!
+			print("PocketMeroe.lua: ProfileSet(\"customMarks\") set for "..tostring(id))
+		end,
+		priority = function()
+			PocketMeroe.db.profile.markersCustom[id][2] = tonumber(arg)
+			print("PocketMeroe.lua: ProfileSet(\"priority\") set for "..tostring(id))
+		end,
+		instanceShortcode = function()
+			PocketMeroe.db.profile.markersCustom[id][3] = arg
+			print("PocketMeroe.lua: ProfileSet(\"instanceShortcode\") set for"..tostring(id))
+		end,
+		monsterType = function ()
+			PocketMeroe.db.profile.markersCustom[id][4] = arg
+			print("PocketMeroe.lua: ProfileSet(\"monsterType\") set for"..tostring(id))
+		end,
+		unitName = function ()
+			PocketMeroe.db.profile.markersCustom[id][5] = arg
+			print("PocketMeroe.lua: ProfileSet(\"unitName\") set for "..tostring(id))
+		end,
+	}
+
+	local func = functionMapping[var]
+    if func then
+        func()
+    else
+		print("PocketMeroe.lua: ProfileSet("..tostring(var)..") not found!")
+    end
+
+end
+
 
 function main.OnInit()
 end
@@ -178,3 +250,5 @@ mainFrame:SetScript("OnEvent", PocketMeroe_OnLoad);
 
 PocketMeroe.main = main
 _G["PocketMeroe"] = PocketMeroe
+
+PocketMeroe.ProfileSet(1706, "customMarks", {4})
