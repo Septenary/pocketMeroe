@@ -45,6 +45,29 @@ local BuildModifierOptions = function(var)
     return result
 end
 
+local BuildMarksBar = function(parent)
+	local marks = CreateFrame("Frame",nil,parent)
+	marks:EnableMouse(true)
+	marks.Background = marks:CreateTexture(nil,"BACKGROUND")
+	marks.Background:SetColorTexture(0,0,0,.3)
+	marks.Background:SetPoint("TOPLEFT")
+	marks.Background:SetPoint("BOTTOMRIGHT")
+	marks:SetPoint("CENTER",18,0)
+	marks:SetSize(20*9,20)
+	marks.list = {}
+	for i=1,9 do
+		marks.list[i] = marks:CreateTexture(nil,"OVERLAY")
+		marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
+		marks.list[i]:SetSize(18,18)
+		marks.list[i]:SetTexture(i <= 8 and "Interface\\TargetingFrame\\UI-RaidTargetingIcon_"..i or [[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+		if i == 9 then
+			marks.list[i]:SetTexCoord(0.125,0.1875,0.5,0.625)
+			marks.list[i]:SetVertexColor(1,1,1,0.7)			
+		end
+	end
+	return marks
+end
+
 gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	if option == "use_mouseover" then
 		Config.use_mouseover = not Config.use_mouseover
@@ -284,10 +307,14 @@ gui.ShowMenu = function()
 		end ]]
 
 		---(self:df_scrollbox, data:table, offset:number, numlines:number)
-		local refreshGrid = function(optionButton, data)
-			optionButton.text:SetText(data.text)
-			optionButton:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
-			optionButton:Show()
+		local refreshGrid = function(frame, data)
+			if not frame then return end
+			frame.text:SetText(data.text)
+			if frame:GetObjectType() == "frame" then
+			elseif frame:GetObjectType() == "button" then
+				frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+			end
+			frame:Show()
 		end
 
 		-- TODO: 
@@ -299,88 +326,88 @@ gui.ShowMenu = function()
 		--declare a function to create a column within a scroll line
 		--this function will receive the line, the line index within the scrollbox and the column index within the line
 		local createColumnFrame = function(line, lineIndex, columnIndex)
-			local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
-			optionButton:SetSize(100, 20)
-			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-			optionButton.text:SetPoint("center", optionButton, "center", 0, 0)
-			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+			if columnIndex == 1 then
+				local fs = CreateFrame("frame", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+				fs:SetSize(100, 20)
+				fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+				fs.text:SetPoint("left", fs, "left", 0, 0)
+				fs.text:SetText("Option " .. lineIndex .. columnIndex)
 
-			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
-			highlightTexture:SetAllPoints()
-			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+				local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
+				highlightTexture:SetAllPoints()
+				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
-			DetailsFramework:ApplyStandardBackdrop(optionButton)
+				DetailsFramework:ApplyStandardBackdrop(fs)
 
-			return optionButton
+				return fs
+			end
+			if columnIndex == 2 then
+				local marksBar = BuildMarksBar(line)
+				return marksBar
+			end
+			if true then
+				local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+				optionButton:SetSize(100, 20)
+				optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+				optionButton.text:SetPoint("center", optionButton, "center", 0, 0)
+				optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+
+				local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+				highlightTexture:SetAllPoints()
+				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+				DetailsFramework:ApplyStandardBackdrop(optionButton)
+
+				return optionButton
+			end
 		end
 
 		local options = {
-			width = 600,
-			height = 400,
+			width = 510,
+			height = 190,
 			--amount of horizontal lines
-			line_amount = 12,
+			line_amount = 9,
 			--amount of columns per line
 			columns_per_line = 4,
 			--height of each line
-			line_height = 30,
+			line_height = 20,
 			auto_amount = false,
 			no_scroll = false,
 			no_backdrop = false,
 		}
 		local data = {
-			{text = "1"}, {text = "2"}, {text = "3"}, {text = "4"}, {text = "5"}, {text = "6"}, {text = "7"}, {text = "8"}, {text = "9"}, {text = "10"},
-			{text = "11"}, {text = "12"}, {text = "13"}, {text = "14"}, {text = "15"}, {text = "16"}, {text = "17"}, {text = "18"}, {text = "19"}, {text = "20"},
-			{text = "21"}, {text = "22"}, {text = "23"}, {text = "24"}, {text = "25"}, {text = "26"}, {text = "27"}, {text = "28"}, {text = "29"}, {text = "30"},
-			{text = "31"}, {text = "32"}, {text = "33"}, {text = "34"}, {text = "35"}, {text = "36"}, {text = "37"}, {text = "38"}, {text = "39"}, {text = "40"},
-			{text = "41"}, {text = "42"}, {text = "43"}, {text = "44"}, {text = "45"}, {text = "46"}, {text = "47"}, {text = "48"}, {text = "49"}, {text = "50"},
-			{text = "51"}, {text = "52"}, {text = "53"}, {text = "54"}, {text = "55"}, {text = "56"}, {text = "57"}, {text = "58"}, {text = "59"}, {text = "60"},
-			{text = "61"}, {text = "62"}, {text = "63"}, {text = "64"}, {text = "65"}, {text = "66"}, {text = "67"}, {text = "68"}, {text = "69"}, {text = "70"},
-			{text = "71"}, {text = "72"}, {text = "73"}, {text = "74"}, {text = "75"}, {text = "76"}, {text = "77"}, {text = "78"}, {text = "79"}, {text = "80"},
-			{text = "81"}, {text = "82"}, {text = "83"}, {text = "84"}, {text = "85"}, {text = "86"}, {text = "87"}, {text = "88"}, {text = "89"}, {text = "90"},
-			{text = "91"}, {text = "92"}, {text = "93"}, {text = "94"}, {text = "95"}, {text = "96"}, {text = "97"}, {text = "98"}, {text = "99"}, {text = "100"},
+			-- {text = "1"}, {text = "2"}, {text = "3"}, {text = "4"}, {text = "5"}, {text = "6"}, {text = "7"}, {text = "8"}, {text = "9"}, {text = "10"},
+			-- {text = "11"}, {text = "12"}, {text = "13"}, {text = "14"}, {text = "15"}, {text = "16"}, {text = "17"}, {text = "18"}, {text = "19"}, {text = "20"},
+			-- {text = "21"}, {text = "22"}, {text = "23"}, {text = "24"}, {text = "25"}, {text = "26"}, {text = "27"}, {text = "28"}, {text = "29"}, {text = "30"},
+			-- {text = "31"}, {text = "32"}, {text = "33"}, {text = "34"}, {text = "35"}, {text = "36"}, {text = "37"}, {text = "38"}, {text = "39"}, {text = "40"},
+			-- {text = "41"}, {text = "42"}, {text = "43"}, {text = "44"}, {text = "45"}, {text = "46"}, {text = "47"}, {text = "48"}, {text = "49"}, {text = "50"},
+			-- {text = "51"}, {text = "52"}, {text = "53"}, {text = "54"}, {text = "55"}, {text = "56"}, {text = "57"}, {text = "58"}, {text = "59"}, {text = "60"},
+			-- {text = "61"}, {text = "62"}, {text = "63"}, {text = "64"}, {text = "65"}, {text = "66"}, {text = "67"}, {text = "68"}, {text = "69"}, {text = "70"},
+			-- {text = "71"}, {text = "72"}, {text = "73"}, {text = "74"}, {text = "75"}, {text = "76"}, {text = "77"}, {text = "78"}, {text = "79"}, {text = "80"},
+			-- {text = "81"}, {text = "82"}, {text = "83"}, {text = "84"}, {text = "85"}, {text = "86"}, {text = "87"}, {text = "88"}, {text = "89"}, {text = "90"},
+			-- {text = "91"}, {text = "92"}, {text = "93"}, {text = "94"}, {text = "95"}, {text = "96"}, {text = "97"}, {text = "98"}, {text = "99"}, {text = "100"},
 		}
 
-		automarks.scroll = 	DF:CreateGridScrollBox(automarks, "$parentScroll", refreshGrid, data, createColumnFrame, options)
-		DF:ReskinSlider(automarks.scroll)
-		automarks.scroll:SetPoint("center", automarks, "center", 5, -140)
-
-		--create the scroll widgets
---[[ 			local createLine = function(self, index)
-			local line = CreateFrame("button", "$parentLine" .. index, self, "BackdropTemplate")
-			line:SetPoint("topleft", self, "topleft", 1, -((index-1)*(scrollConfig.scroll_line_height+1)) - 1)
-			line:SetSize(scrollConfig.scroll_width - 2, scrollConfig.scroll_line_height)
-			line:SetScript("OnEnter", line_onenter)
-			line:SetScript("OnLeave", line_onleave)
-
-			line:SetBackdrop({bgFile = [ [Interface\Tooltips\UI-Tooltip-Background] ], tileSize = 64, tile = true})
-			line:SetBackdropColor(unpack(scrollConfig.backdrop_color))
-
-			local name = line:CreateFontString("$parentName", "OVERLAY", "GameFontNormal")
-			local zone = line:CreateFontString("$parentName", "OVERLAY", "GameFontNormal")
-
-			DF:SetFontSize(name, 10)
-			DF:SetFontSize(zone, 10)
-
-			local icon = line:CreateTexture("$parentIcon", "OVERLAY")
-			icon:SetSize(scrollConfig.scroll_line_height - 2, scrollConfig.scroll_line_height - 2)
-			icon:SetTexCoord(.1, .9, .1, .9)
-
-
-			icon:SetPoint("left", line, "left", 2, 0)
-			name:SetPoint("left", icon, "right", 4, 0)
-
-
-			zone:SetPoint("right", line, "right", -26, 0)
-
-			line.icon = icon
-			line.name = name
-			line.zone = zone
-
-			return line
+		function PocketMeroe.gui.getData () 
+			if not PocketMeroeDB then
+				print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
+				return
+			end
+			local npcData = PocketMeroe.db.profile.markersCustom
+			for id, value in pairs (npcData) do
+				--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
+				local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
+				table.insert(data, {text = tostring(unitName)})
+				table.insert(data, {text = ""})
+				table.insert(data, {text = tostring(instanceShortcode)})
+				table.insert(data, {text = tostring(monsterType)})
+			end
+			return data
 		end
-		for i = 1, scrollConfig.scroll_lines do
-			automarks.scroll:CreateLine(createLine, i)
-		end ]]
+		PocketMeroe.gui.data = PocketMeroe.gui.getData()
+		automarks.scroll = 	DF:CreateGridScrollBox(automarks, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
+		DF:ReskinSlider(automarks.scroll)
+		automarks.scroll:SetPoint("bottom", automarks, "bottom", -10, 25)
 
 		function automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
 				if (not automarks.scroll:IsShown()) then
@@ -442,6 +469,7 @@ gui.ShowMenu = function()
 			--desc = "",
 		},
 	}
+
 	automarks.scroll:UpdateList()
 	DF:BuildMenu(automarks, automarksOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
