@@ -308,11 +308,18 @@ gui.ShowMenu = function()
 
 		---(self:df_scrollbox, data:table, offset:number, numlines:number)
 		local refreshGrid = function(frame, data)
-			if not frame then return end
+			if not frame or not data then return end
+			if not data.text then 
+				frame:Hide()  -- Hide the frame if data.text is not provided
+				return
+			end
+
 			frame.text:SetText(data.text)
-			if frame:GetObjectType() == "frame" then
-			elseif frame:GetObjectType() == "button" then
+
+			if frame:GetObjectType() == "button" then
 				frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+			elseif
+				frame:GetObjectType() == "frame" then
 			end
 			frame:Show()
 		end
@@ -343,13 +350,12 @@ gui.ShowMenu = function()
 			end
 			if columnIndex == 2 then
 				local marksBar = BuildMarksBar(line)
-				return marksBar
 			end
 			if true then
 				local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
-				optionButton:SetSize(100, 20)
+				optionButton:SetPoint("right", line, "right", 0, 0)
 				optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-				optionButton.text:SetPoint("center", optionButton, "center", 0, 0)
+				optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
 				optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
 
 				local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
@@ -357,6 +363,7 @@ gui.ShowMenu = function()
 				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
 				DetailsFramework:ApplyStandardBackdrop(optionButton)
+				optionButton:SetSize(100, 20)
 
 				return optionButton
 			end
@@ -368,7 +375,7 @@ gui.ShowMenu = function()
 			--amount of horizontal lines
 			line_amount = 9,
 			--amount of columns per line
-			columns_per_line = 4,
+			columns_per_line = 3,
 			--height of each line
 			line_height = 20,
 			auto_amount = false,
@@ -399,8 +406,7 @@ gui.ShowMenu = function()
 				local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
 				table.insert(data, {text = tostring(unitName)})
 				table.insert(data, {text = ""})
-				table.insert(data, {text = tostring(instanceShortcode)})
-				table.insert(data, {text = tostring(monsterType)})
+				table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
 			end
 			return data
 		end
