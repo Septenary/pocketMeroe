@@ -14,7 +14,7 @@ local raidIcons = {
 	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
 }
 
-gui.autoMarkState = gui.autoMarkState or {}
+gui.autoMarkState = gui.autoMarkState or {8, 7, 6, 5, 4, 3, 2, 1}
 
 
 local SetSetting = function(...)
@@ -48,7 +48,7 @@ local BuildModifierOptions = function(var)
     return result
 end
 
-
+-- get cursor position relative to frame
 local function GetCursorPos(frame)
 	local x_f,y_f = GetCursorPosition()
 	local s = frame:GetEffectiveScale()
@@ -70,15 +70,13 @@ function UpdateData()
 		gui.markMax = 1000
 	end
 	local lastNonZeroIndex = 0
-	for i=1,gui.markMax do
+	for i=1,9 do -- 9 is hard-code from CreateGridScrollBox
 		--local name = gui.autoMarkNames[i]
-		local name = PocketMeroe.db.profile.markersCustom[1706][5] -- must be string!
-		if name and name ~= "" then
-			if name:find("^%-") then
-				name = name:gsub("^%-","")
-			end
+		local mobIDs = PocketMeroe.gui.getData()
+		if mobIDs and mobIDs[i] then
 			pm_data_names[ (name):lower() ] = true
-			pm_data_names_state[ (name):lower() ] = gui.autoMarkState[i] or "87654321"
+			pm_data_names_state[ (name):lower() ] = gui.autoMarkState[i] or {8, 7, 6, 5, 4, 3, 2, 1}
+			print(pm_data_names, pm_data_names_state)
 			lastNonZeroIndex = i
 		end
 	end
@@ -91,13 +89,13 @@ end
 local function Tab2LineUpdate(self)
 	local num = self._i
 	--self.edit:SetText(gui.autoMarkNames[num] or "")
-	--self.marks.state = gui.autoMarkState[num] or "87654321"
+	self.marks.state = gui.autoMarkState[num] or {8, 7, 6, 5, 4, 3, 2, 1}
 	
 	for i=1,#self.marks.list do
-		local mark = self.marks.state:sub(i,i)
-		if mark ~= "" then
+		local mark = self.marks.state[i]
+		if mark then
 			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
-			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,19))
+			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,9))
 		else
 			self.marks.list[i]:SetTexture()
 		end
@@ -137,7 +135,39 @@ local function Tab2MarksOnUpdate(self)
 		end
 		currCursor = i
 	end
-	local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
+	--local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
+	-- prolly did this wrong..
+	local function removeElementAtIndex(t, i)
+		local newTable = {}
+		for index, value in ipairs(t) do
+			if index ~= i then
+				table.insert(newTable, value)
+			end
+		end
+		return newTable
+	end
+	
+	local function insertElementAtIndex(t, element, index)
+		local newTable = {}
+		for i = 1, index - 1 do
+			table.insert(newTable, t[i])
+		end
+		table.insert(newTable, element)
+		for i = index, #t do
+			table.insert(newTable, t[i])
+		end
+		return newTable
+	end
+	
+	-- Remove the picked element
+	local tempState = removeElementAtIndex(self.saved_state, self.picked)
+	-- Create newState by inserting the picked element at currCursor
+	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
+	
+	-- for _, v in ipairs(newState) do
+	-- 	print(v)
+	-- end
+	print (newState)
 	if newState ~= self.state then
 		self.state = newState
 		self:GetParent():Update()
@@ -148,9 +178,10 @@ local function Tab2MarksOnMouseDown(self,button)
 	if button == "LeftButton" then
 		--print("LMB")
 		local x,y = GetCursorPos(self.list.refresh)
+		--print("x", x, "y", y)
 		if x >= 0 and x <= 19 then
-			self.state = self:GetParent().isExpand and "876543219ABCDEFG" or "87654321"
-			gui.autoMarkState[self:GetParent()._i] = self.state
+			--self.state = {8, 7, 6, 5, 4, 3, 2, 1}
+			--gui.autoMarkState[self:GetParent()._i] = self.state
 			self:GetParent():Update()
 			UpdateData()
 			return
@@ -160,10 +191,12 @@ local function Tab2MarksOnMouseDown(self,button)
 		for i=1,#self.list do
 			if self.list[i]:IsShown() then
 				local x,y = GetCursorPos(self.list[i])
+				--print("x", x, "y", y)
 				if x >= 0 and x <= 19 then
 					self.picked = i
+					--print(self.picked)
 					self.saved_state = self.state
-					self.state_len = self.state:len()
+					self.state_len = #self.state
 					if self.state_len < i then
 						return
 					end
@@ -172,7 +205,7 @@ local function Tab2MarksOnMouseDown(self,button)
 			end
 		end
 		if self.picked then
-			self.picked_mark = self.saved_state:sub(self.picked,self.picked)
+			self.picked_mark = self.saved_state[self.picked]
 			self:SetScript("OnUpdate",Tab2MarksOnUpdate)
 			self:GetParent():Update()
 		end
@@ -189,7 +222,26 @@ local function Tab2MarksOnMouseDown(self,button)
 			if self.list[i]:IsShown() then
 				local x,y = GetCursorPos(self.list[i])
 				if x >= 0 and x <= 19 then
-					local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
+					--local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
+						local function removeElementAtIndex(t, i)
+							local newState = {}
+							for index, value in ipairs(t) do
+								if index ~= i then
+									table.insert(newState, value)
+								end
+							end
+							return newState
+						end
+						
+						-- Example usage
+						local self = { state = {8, 7, 6, 5, 4, 3, 2, 1} }
+						local i = 3
+						local newState = removeElementAtIndex(self.state, i)
+						
+						-- Print the new state to verify
+						for _, v in ipairs(newState) do
+							print(v)
+						end
 					self.state = newState
 					gui.autoMarkState[self:GetParent()._i] = newState
 					self:GetParent():Update()
@@ -200,21 +252,24 @@ local function Tab2MarksOnMouseDown(self,button)
 		end			
 	end
 end
--- local function Tab2MarksListOnEnter(self)
--- 	self:GetParent().Background:Show()
--- end
--- local function Tab2MarksListOnLeave(self)
--- 	self:GetParent().Background:Hide()
--- end
+local function Tab2MarksListOnEnter(self)
+	self:GetParent().Background:Show()
+end
+local function Tab2MarksListOnLeave(self)
+	self:GetParent().Background:Hide()
+end
 
 
 local BuildMarksBar = function(parent)
+	local line = CreateFrame("Frame",nil,parent)
+	line:SetPoint("LEFT",5,0)
+	line:SetPoint("RIGHT",-130,0)
+	line:SetHeight(25)
 	for i=1,9 do
-		local marks = CreateFrame("Frame",nil,parent)
+		local marks = CreateFrame("Frame",nil,line)
 		marks:EnableMouse(true)
 		marks.Background = marks:CreateTexture(nil,"BACKGROUND")
 		marks.Background:SetColorTexture(0,0,0,.3)
-		marks.Background:SetPoint("CENTER")
 		marks.Background:SetPoint("CENTER")
 		marks:SetPoint("RIGHT",-5,0)
 		marks:SetSize(20*9,20)
@@ -236,15 +291,15 @@ local BuildMarksBar = function(parent)
 	
 		marks:SetScript("OnMouseDown",Tab2MarksOnMouseDown)
 		
-		marks.state = gui.autoMarkState[i] or "87654321"
+		marks.state = gui.autoMarkState[i] or {8, 7, 6, 5, 4, 3, 2, 1}
 		
-		parent.marks = marks
+		line.marks = marks
 		
-		parent.Update = Tab2LineUpdate
-		parent:Update()
+		line.Update = Tab2LineUpdate
+		line:Update()
 		
-		-- marks:SetScript("OnEnter",Tab2MarksListOnEnter)
-		-- marks:SetScript("OnLeave",Tab2MarksListOnLeave)
+		marks:SetScript("OnEnter",Tab2MarksListOnEnter)
+		marks:SetScript("OnLeave",Tab2MarksListOnLeave)
 	end
 end
 
@@ -514,7 +569,7 @@ gui.ShowMenu = function()
 		--this function will receive the line, the line index within the scrollbox and the column index within the line
 		local createColumnFrame = function(line, lineIndex, columnIndex)
 			if columnIndex == 1 then
-				local fs = CreateFrame("frame", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+				local fs = CreateFrame("frame", "$parentG" .. lineIndex .. columnIndex, line)
 				fs:SetSize(100, 20)
 				fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 				fs.text:SetPoint("left", fs, "left", 0, 0)
@@ -532,7 +587,7 @@ gui.ShowMenu = function()
 				local marksBar = BuildMarksBar(line)
 			end
 			if true then
-				local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+				local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
 				optionButton:SetPoint("right", line, "right", 0, 0)
 				optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 				optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
