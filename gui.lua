@@ -3,8 +3,6 @@ local DF = _G["DetailsFramework"]
 local gui = {}
 gui.scrollBox = {}
 
-local config = {}
-
 -- templates
 local options_text_template = DF:GetTemplate("font", "OPTIONS_FONT_TEMPLATE")
 local options_dropdown_template = DF:GetTemplate("dropdown", "OPTIONS_DROPDOWN_TEMPLATE")
@@ -57,6 +55,165 @@ local BuildModifierOptions = function(var)
 
     return result
 end
+
+local function GetCursorPos(frame)
+	local x_f,y_f = GetCursorPosition()
+	local s = frame:GetEffectiveScale()
+	x_f, y_f = x_f/s, y_f/s
+	local x,y = frame:GetLeft(),frame:GetTop()
+	x = x_f-x
+	y = (y_f-y)*(-1)
+	return x,y
+end
+
+local pm_data_names,pm_data_names_state = {},{}
+function UpdateData()
+	wipe(pm_data_names)
+	wipe(pm_data_names_state)
+	if type(gui.markMax) ~= "number" or gui.markMax < 100 then
+		gui.markMax = 100
+	end
+	if type(gui.markMax) == "number" and gui.markMax > 1000 then
+		gui.markMax = 1000
+	end
+	local lastNonZeroIndex = 0
+	for i=1,gui.markMax do
+		--local name = gui.autoMarkNames[i]
+		local name = PocketMeroe.db.profile.markersCustom[1706][5] -- must be string!
+		if name and name ~= "" then
+			if name:find("^%-") then
+				name = name:gsub("^%-","")
+			end
+			pm_data_names[ (name):lower() ] = true
+			pm_data_names_state[ (name):lower() ] = gui.autoMarkState[i] or "87654321"
+			lastNonZeroIndex = i
+		end
+	end
+	if lastNonZeroIndex < 100 then
+		lastNonZeroIndex = 100
+	end
+	gui.markMax = ceil(lastNonZeroIndex / 50) * 50
+end
+
+local function Tab2LineUpdate(self)
+	local num = self._i
+	--self.edit:SetText(gui.autoMarkNames[num] or "")
+	--self.marks.state = gui.autoMarkState[num] or "87654321"
+	
+	for i=1,#self.marks.list do
+		local mark = self.marks.state:sub(i,i)
+		if mark ~= "" then
+			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,19))
+		else
+			self.marks.list[i]:SetTexture()
+		end
+		if mark == self.marks.picked_mark then
+			self.marks.list[i]:SetAlpha(.7)
+		else
+			self.marks.list[i]:SetAlpha(1)
+		end
+		self.marks.list[i]:SetShown(i <= 8 or self.isExpand)
+	end
+	if self.isExpand and not self.isExpanded then
+		self.marks:SetWidth(20*17)
+		self.edit:Size(470-20*8,20)
+		self.isExpanded = true
+	elseif not self.isExpand and self.isExpanded then
+		self.marks:SetWidth(20*9)
+		self.edit:Size(470,20)
+		self.isExpanded = false
+	end
+end
+
+local function Tab2MarksOnUpdate(self)
+	if not IsMouseButtonDown(1) then
+		self:SetScript("OnUpdate",nil)
+		self.picked = nil
+		self.picked_mark = nil
+		gui.autoMarkState[self:GetParent()._i] = self.state
+		self:GetParent():Update()
+		UpdateData()
+		return
+	end
+	local currCursor = 1
+	for i=1,self.state_len do
+		local x,y = GetCursorPos(self.list[i])
+		if x < 0 then
+			break
+		end
+		currCursor = i
+	end
+	local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
+	if newState ~= self.state then
+		self.state = newState
+		self:GetParent():Update()
+	end
+end
+local function Tab2MarksOnMouseDown(self,button)
+	self.picked_mark = nil
+	if button == "LeftButton" then
+		--print("LMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		if x >= 0 and x <= 19 then
+			self.state = self:GetParent().isExpand and "876543219ABCDEFG" or "87654321"
+			gui.autoMarkState[self:GetParent()._i] = self.state
+			self:GetParent():Update()
+			UpdateData()
+			return
+		end
+	
+		self.picked = nil
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				if x >= 0 and x <= 19 then
+					self.picked = i
+					self.saved_state = self.state
+					self.state_len = self.state:len()
+					if self.state_len < i then
+						return
+					end
+					break
+				end
+			end
+		end
+		if self.picked then
+			self.picked_mark = self.saved_state:sub(self.picked,self.picked)
+			self:SetScript("OnUpdate",Tab2MarksOnUpdate)
+			self:GetParent():Update()
+		end
+	elseif button == "RightButton" then
+		--print("RMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		if x >= 0 and x <= 19 then
+			--self:GetParent().isExpand = not self:GetParent().isExpand
+			self:GetParent():Update()
+			return
+		end
+
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				if x >= 0 and x <= 19 then
+					local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
+					self.state = newState
+					gui.autoMarkState[self:GetParent()._i] = newState
+					self:GetParent():Update()
+					UpdateData()
+					break
+				end
+			end
+		end			
+	end
+end
+-- local function Tab2MarksListOnEnter(self)
+-- 	self:GetParent().Background:Show()
+-- end
+-- local function Tab2MarksListOnLeave(self)
+-- 	self:GetParent().Background:Hide()
+-- end
+
 
 local function GetCursorPos(frame)
 	local x_f,y_f = GetCursorPosition()
@@ -590,6 +747,141 @@ local buildshowMarkScroll = function(parentTab)
 end
 
 local buildshowMenu = function()
+local buildshowMarkScroll = function(parentTab)
+	if parentTab.scroll then
+		parentTab.scroll:Show()
+		return
+	end
+--[[ 		local backdrop_color = {.8, .8, .8, 0.2}
+	local backdrop_color_on_enter = {.8, .8, .8, 0.4}
+
+	local line_onenter = function (self)
+		self:SetBackdropColor (unpack (backdrop_color_on_enter))
+	end
+
+	local line_onleave = function (self)
+		self:SetBackdropColor (unpack (backdrop_color))
+	end ]]
+
+	---(self:df_scrollbox, data:table, offset:number, numlines:number)
+	local refreshGrid = function(frame, data)
+		if not frame or not data then return end
+		if not data.text then 
+			frame:Hide()  -- Hide the frame if data.text is not provided
+			return
+		end
+
+		frame.text:SetText(data.text)
+
+		if frame:GetObjectType() == "button" then
+			frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+		elseif
+			frame:GetObjectType() == "frame" then
+		end
+		frame:Show()
+	end
+
+	-- TODO: 
+	-- % over columnIndex
+	-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
+	-- data columns & refresh with if (npcData[id].instance[1] == value [+checks])
+
+	--create frames for each column in a scrollboxgrid made of lines
+	local createColumnFrame = function(line, lineIndex, columnIndex)
+		if columnIndex == 1 then
+			local fs = CreateFrame("frame", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+			fs:SetSize(100, 20)
+			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			fs.text:SetPoint("left", fs, "left", 0, 0)
+			fs.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(fs)
+
+			return fs
+		end
+		if columnIndex == 2 then
+			local marksBar = BuildMarksBar(line)
+		end
+		if true then
+			local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+			optionButton:SetPoint("right", line, "right", 0, 0)
+			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
+			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(optionButton)
+			optionButton:SetSize(100, 20)
+
+			line._i = lineIndex
+			return optionButton
+		end
+	end
+
+	local options = {
+		width = 510,
+		height = 190,
+		--amount of horizontal lines
+		line_amount = 9,
+		--amount of columns per line
+		columns_per_line = 3,
+		--height of each line
+		line_height = 20,
+		auto_amount = false,
+		no_scroll = false,
+		no_backdrop = false,
+	}
+	local data = {}
+
+	function PocketMeroe.gui.getData () 
+		if not PocketMeroeDB then
+			print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
+			return
+		end
+		local npcData = PocketMeroe.db.profile.markersCustom
+		for id, value in pairs (npcData) do
+			--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
+			local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
+			table.insert(data, {text = tostring(unitName)})
+			table.insert(data, {text = ""})
+			table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
+		end
+		return data
+	end
+	PocketMeroe.gui.data = PocketMeroe.gui.getData()
+	parentTab.scroll = 	DF:CreateGridScrollBox(parentTab, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
+	DF:ReskinSlider(parentTab.scroll)
+	parentTab.scroll:SetPoint("bottom", parentTab, "bottom", -10, 25)
+
+	function parentTab.scroll:UpdateList(_, _, option, value, value2, mouseButton)
+			if (not parentTab.scroll:IsShown()) then
+				return
+			end
+
+			-- local npcData = PocketMeroe.db.profile.markersCustom
+			-- for id, _ in pairs (npcData) do
+			-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+			-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+			-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
+			-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+			-- 	if (zone == value or value =="none" or not value) then
+			-- 		if not name then name = id end
+			-- 		--table.insert(data, {name, zone})
+			-- 	end
+			-- end
+			-- --automarks.scroll:SetData(data)
+			parentTab.scroll:Refresh()
+	end
+end
+
+local buildshowMenu = function()
 	-- toggle scrollConfiguration menu
 
 	if not PocketMeroeDB then
@@ -666,6 +958,7 @@ local buildshowMenu = function()
 	
 	--- [meroe.automarks] ---
 	buildshowMarkScroll(automarks)
+	buildshowMarkScroll(automarks)
 	buildTab2Options(automarks, tabFrameHeight)
 
 	---
@@ -674,6 +967,7 @@ local buildshowMenu = function()
 end
 
 gui.MenuToggle = function ()
+	local menu = PocketMeroeOptions or buildshowMenu();
 	local menu = PocketMeroeOptions or buildshowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
