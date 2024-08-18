@@ -3,6 +3,16 @@ local DF = _G["DetailsFramework"]
 local gui = {}
 gui.scrollBox = {}
 
+local config = {}
+
+-- templates
+local options_text_template = DF:GetTemplate("font", "OPTIONS_FONT_TEMPLATE")
+local options_dropdown_template = DF:GetTemplate("dropdown", "OPTIONS_DROPDOWN_TEMPLATE")
+local options_switch_template = DF:GetTemplate("switch", "OPTIONS_CHECKBOX_TEMPLATE")
+local options_slider_template = DF:GetTemplate("slider", "OPTIONS_SLIDER_TEMPLATE")
+local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
+local options_button_template_selected = DF.table.copy({}, DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
+
 local raidIcons = {
 	[1] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1", -- Star
 	[2] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_2", -- Circle
@@ -14,8 +24,9 @@ local raidIcons = {
 	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
 }
 
-local SetSetting = function(...)
-	gui.OptionsOnClick(nil, nil, ...)
+--this function runs when any setting is changed
+local profileCallback = function()
+
 end
 
 local SetModifier = function(_, var, value, key)
@@ -68,7 +79,7 @@ local BuildMarksBar = function(parent)
 	return marks
 end
 
-gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
+local OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	if option == "use_mouseover" then
 		Config.use_mouseover = not Config.use_mouseover
 		return
@@ -86,59 +97,12 @@ gui.OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	end
 end
 
-gui.ShowMenu = function()
-	-- toggle scrollConfiguration menu
+local SetSetting = function(...)
+	OptionsOnClick(nil, nil, ...)
+end
 
-	if not PocketMeroeDB then
-		print("PocketMeroe.gui: PocketMeroeDB not loaded! Stopping!")
-		return
-	end
-	Config = PocketMeroe.db.profile
-	ClearModifier = Config.clear_modifier
-	MarkingModifier = Config.marking_modifier
 
-	if (PocketMeroeOptions) then
-		PocketMeroeOptions:Show()
-		return
-	end
-
-	-- templates
-	local options_text_template = DF:GetTemplate("font", "OPTIONS_FONT_TEMPLATE")
-	local options_dropdown_template = DF:GetTemplate("dropdown", "OPTIONS_DROPDOWN_TEMPLATE")
-	local options_switch_template = DF:GetTemplate("switch", "OPTIONS_CHECKBOX_TEMPLATE")
-	local options_slider_template = DF:GetTemplate("slider", "OPTIONS_SLIDER_TEMPLATE")
-	local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
-	local options_button_template_selected = DF.table.copy({}, DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
-
-	--options
-	local selectedTabIndicatorDefaultColor = {.4, .4, .4}
-	local selectedTabIndicatorColor = {1, 1, 0}
-
-	--build the options window
-	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "PocketMeroeOptions")
-
-    local statusBar = CreateFrame("frame", "$parent.Status", optionsFrame, "BackdropTemplate")
-    statusBar:SetHeight(20)
-    statusBar:SetAlpha(0.9)
-    statusBar:SetFrameLevel(optionsFrame:GetFrameLevel()+2)
-    statusBar:ClearAllPoints()
-    statusBar:SetPoint("BOTTOMLEFT", optionsFrame, "BOTTOMLEFT")
-    statusBar:SetPoint("BOTTOMRIGHT", optionsFrame, "BOTTOMRIGHT")
-
-    local authorInfo = DF:CreateLabel(statusBar, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
-    authorInfo:SetPoint("left", statusBar, "left", 6, 0)
-    authorInfo:SetAlpha(.6)
-    authorInfo.textcolor = "silver"
-
-    statusBar.authorInfo = authorInfo
-    DF:ApplyStandardBackdrop(statusBar)
-
-	local bottomGradient = DF:CreateTexture(optionsFrame,
-		{ gradient = "vertical", fromColor = { 0, 0, 0, 0.3 }, toColor = "transparent" }, 1, 100, "artwork", { 0, 1, 0, 1 },
-		"bottomGradient")
-	bottomGradient:SetAllPoints(optionsFrame, 1)
-    bottomGradient:SetPoint("bottom-top", statusBar)
-
+local buildOptionsFrameTabs = function(parent, tabs)
 	local tabList = {
 		{name = ".general",	text = "General"},
 		{name = ".automarks", text = "Automarks"},
@@ -155,6 +119,10 @@ gui.ShowMenu = function()
 		close_text_alpha = 0,
 		container_width_offset = 0
 	}
+
+	local selectedTabIndicatorDefaultColor = {.4, .4, .4}
+	local selectedTabIndicatorColor = {1, 1, 0}
+
 	local hookList = {
 		OnSelectIndex = function(tabContainer, tabButton)
 			if (not tabButton.leftSelectionIndicator) then
@@ -181,61 +149,35 @@ gui.ShowMenu = function()
 	local backdropColor = { DF:GetDefaultBackdropColor() }
 	local backdropBorderColor = {0, 0, 0, 1}
 	tabContainer:SetTabFramesBackdrop(backdropTable, backdropColor, backdropBorderColor)
+	return tabContainer
+end
 
-	--this function runs when any setting is changed
-	local profileCallback = function()
+local buildStatusAuthorBar = function(parent)
+	local statusBar = CreateFrame("frame", "$parent.Status", parent, "BackdropTemplate")
+    statusBar:SetHeight(20)
+    statusBar:SetAlpha(0.9)
+    statusBar:SetFrameLevel(parent:GetFrameLevel()+2)
+    statusBar:ClearAllPoints()
+    statusBar:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT")
+    statusBar:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT")
+	DF:ApplyStandardBackdrop(statusBar)
 
-	end
+    local authorInfo = DF:CreateLabel(statusBar, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
+    authorInfo:SetPoint("left", statusBar, "left", 6, 0)
+    authorInfo:SetAlpha(.6)
+    authorInfo.textcolor = "silver"
 
-	--make the tab button's text be aligned to left and fit the button's area
-	for index, frame in ipairs(tabContainer.AllFrames) do
-		frame.titleText.fontsize = 18
-		local tabButton = tabContainer.AllButtons[index]
-		local leftSelectionIndicator = tabButton:CreateTexture(nil, "overlay")
+	local bottomGradient = DF:CreateTexture(parent,
+	{ gradient = "vertical", fromColor = { 0, 0, 0, 0.3 }, toColor = "transparent" }, 1, 100, "artwork", { 0, 1, 0, 1 },
+	"bottomGradient")
+	bottomGradient:SetAllPoints(parent, 1)
+	bottomGradient:SetPoint("bottom-top", statusBar)
 
-		--DF:ApplyStandardBackdrop(frame)
-		local frameBackgroundTexture = frame:CreateTexture(nil, "artwork")
-		frameBackgroundTexture:SetPoint("topleft", frame, "topleft", 4, -110)
-		frameBackgroundTexture:SetPoint("bottomright", frame, "bottomright", -4, 20)
-		frameBackgroundTexture:SetColorTexture (0.2317647, 0.2317647, 0.2317647)
-		frameBackgroundTexture:SetVertexColor (0.27, 0.27, 0.27)
-		frameBackgroundTexture:SetAlpha (0.3)
 
-		if (index == 1) then
-			leftSelectionIndicator:SetColorTexture(1, 1, 0)
-		else
-			leftSelectionIndicator:SetColorTexture(.4, .4, .4)
-		end
-		leftSelectionIndicator:SetPoint("left", tabButton.widget, "left", 2, 0)
-		leftSelectionIndicator:SetSize(4, tabButton:GetHeight()-4)
-		tabButton.leftSelectionIndicator = leftSelectionIndicator
+	return statusBar, authorInfo
+end
 
-		local maxTextLength = tabButton:GetWidth() - 7
-
-		local fontString = _G[tabButton:GetName() .. "_Text"]
-		fontString:ClearAllPoints()
-		fontString:SetPoint("left", leftSelectionIndicator, "right", 2, 0)
-		fontString:SetJustifyH("left")
-		fontString:SetWordWrap(true)
-		fontString:SetWidth(maxTextLength)
-		fontString:SetHeight(tabButton:GetHeight()+20)
-		fontString:SetText(fontString:GetText())
-
-		local stringWidth = fontString:GetStringWidth()
-
-		--print(stringWidth, maxTextLength, fontString:GetText())
-
-		if (stringWidth > maxTextLength) then
-			local fontSize = DF:GetFontSize(fontString)
-			DF:SetFontSize(fontString, fontSize-0.5)
-		end
-	end
-
-	-- get each tab's frame and create a local variable to cache it
-	local general = tabContainer.AllFrames[1]
-	local automarks = tabContainer.AllFrames[2]
-	local tabFrameHeight = general:GetHeight()
-	---  [meroe.general]  ---
+local buildTab1Options = function(parentTab, tabFrameHeight)
 	local generalOptionsTable = {
 		always_boxfirst = true,
 		{
@@ -285,10 +227,132 @@ gui.ShowMenu = function()
 		},
 		{type = "blank"},
 	}
-	DF:BuildMenu(general, generalOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+	DF:BuildMenu(general, config.generalOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
 
+end
+
+local buildTab2Options = function(parentTab, tabFrameHeight)
+	local BuildRaidOptions = function(var, frame)
+		local raids = {
+			{ label = "All",                 value = "none" },
+			{ label = "Zul'Gurub",           value = "ZG" },
+			{ label = "Ruins of Ahn'Qiraj",  value = "AQ20" },
+			{ label = "Molten Core",         value = "MC" },
+			{ label = "Blackwing Lair",      value = "BWL" },
+			{ label = "Temple of Ahn'Qiraj", value = "AQ40" },
+			{ label = "Naxxramas",           value = "NAXX" },
+		}
+
+		local result = {}
+
+		for _, raid in ipairs(raids) do
+			table.insert(result, {
+				label = raid.label,
+				value = raid.value,
+				onclick = function()
+					parentTab.scroll:UpdateList(nil, var, true, raid.value)
+				end,
+			})
+		end
+		return result
+	end
+
+	local automarksOptionsTable = {
+		always_boxfirst = false,
+		{
+			type = "select",
+			get = function()
+				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
+			end,
+			values = function () return BuildRaidOptions(Config.var, parentTab.scroll) end,
+			name = "Raid:",
+			--desc = "",
+		},
+	}
+
+	parentTab.scroll:UpdateList()
+	DF:BuildMenu(parentTab, automarksOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
+		profileCallback)
+end
+
+gui.ShowMenu = function()
+	-- toggle scrollConfiguration menu
+
+	if not PocketMeroeDB then
+		print("PocketMeroe.gui: PocketMeroeDB not loaded! Stopping!")
+		return
+	end
+	Config = PocketMeroe.db.profile
+	ClearModifier = Config.clear_modifier
+	MarkingModifier = Config.marking_modifier
+
+	if (PocketMeroeOptions) then
+		PocketMeroeOptions:Show()
+		return
+	end
+
+
+	--build the options window
+	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "PocketMeroeOptions")
+
+	buildStatusAuthorBar(optionsFrame)
+	local tabContainer = buildOptionsFrameTabs(optionsFrame)	-- build the tabs
+
+	--make the tab button's text be aligned to left and fit the button's area
+	for index, frame in ipairs(tabContainer.AllFrames) do
+		frame.titleText.fontsize = 18
+		local tabButton = tabContainer.AllButtons[index]
+		local leftSelectionIndicator = tabButton:CreateTexture(nil, "overlay")
+
+		--DF:ApplyStandardBackdrop(frame)
+		local frameBackgroundTexture = frame:CreateTexture(nil, "artwork")
+		frameBackgroundTexture:SetPoint("topleft", frame, "topleft", 4, -110)
+		frameBackgroundTexture:SetPoint("bottomright", frame, "bottomright", -4, 20)
+		frameBackgroundTexture:SetColorTexture (0.2317647, 0.2317647, 0.2317647)
+		frameBackgroundTexture:SetVertexColor (0.27, 0.27, 0.27)
+		frameBackgroundTexture:SetAlpha (0.3)
+
+		if (index == 1) then
+			leftSelectionIndicator:SetColorTexture(1, 1, 0)
+		else
+			leftSelectionIndicator:SetColorTexture(.4, .4, .4)
+		end
+		leftSelectionIndicator:SetPoint("left", tabButton.widget, "left", 2, 0)
+		leftSelectionIndicator:SetSize(4, tabButton:GetHeight()-4)
+		tabButton.leftSelectionIndicator = leftSelectionIndicator
+
+		local maxTextLength = tabButton:GetWidth() - 7
+
+		local fontString = _G[tabButton:GetName() .. "_Text"]
+		fontString:ClearAllPoints()
+		fontString:SetPoint("left", leftSelectionIndicator, "right", 2, 0)
+		fontString:SetJustifyH("left")
+		fontString:SetWordWrap(true)
+		fontString:SetWidth(maxTextLength)
+		fontString:SetHeight(tabButton:GetHeight()+20)
+		fontString:SetText(fontString:GetText())
+
+		local stringWidth = fontString:GetStringWidth()
+
+		--print(stringWidth, maxTextLength, fontString:GetText())
+
+		if (stringWidth > maxTextLength) then
+			local fontSize = DF:GetFontSize(fontString)
+			DF:SetFontSize(fontString, fontSize-0.5)
+		end
+	end
+
+	-- get each tab's frame and create a local variable to cache it
+	local general = tabContainer.AllFrames[1]
+	local automarks = tabContainer.AllFrames[2]
+	local tabFrameHeight = general:GetHeight()
+
+	---  [meroe.general]  ---
+	buildTab1Options(general, tabFrameHeight)
+	
 	--- [meroe.automarks] ---
 	function PocketMeroe.ShowMarkScroll()
 		if automarks.scroll then
@@ -344,7 +408,7 @@ gui.ShowMenu = function()
 				highlightTexture:SetAllPoints()
 				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
-				DetailsFramework:ApplyStandardBackdrop(fs)
+				DF:ApplyStandardBackdrop(fs)
 
 				return fs
 			end
@@ -362,7 +426,7 @@ gui.ShowMenu = function()
 				highlightTexture:SetAllPoints()
 				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
-				DetailsFramework:ApplyStandardBackdrop(optionButton)
+				DF:ApplyStandardBackdrop(optionButton)
 				optionButton:SetSize(100, 20)
 
 				return optionButton
@@ -382,18 +446,7 @@ gui.ShowMenu = function()
 			no_scroll = false,
 			no_backdrop = false,
 		}
-		local data = {
-			-- {text = "1"}, {text = "2"}, {text = "3"}, {text = "4"}, {text = "5"}, {text = "6"}, {text = "7"}, {text = "8"}, {text = "9"}, {text = "10"},
-			-- {text = "11"}, {text = "12"}, {text = "13"}, {text = "14"}, {text = "15"}, {text = "16"}, {text = "17"}, {text = "18"}, {text = "19"}, {text = "20"},
-			-- {text = "21"}, {text = "22"}, {text = "23"}, {text = "24"}, {text = "25"}, {text = "26"}, {text = "27"}, {text = "28"}, {text = "29"}, {text = "30"},
-			-- {text = "31"}, {text = "32"}, {text = "33"}, {text = "34"}, {text = "35"}, {text = "36"}, {text = "37"}, {text = "38"}, {text = "39"}, {text = "40"},
-			-- {text = "41"}, {text = "42"}, {text = "43"}, {text = "44"}, {text = "45"}, {text = "46"}, {text = "47"}, {text = "48"}, {text = "49"}, {text = "50"},
-			-- {text = "51"}, {text = "52"}, {text = "53"}, {text = "54"}, {text = "55"}, {text = "56"}, {text = "57"}, {text = "58"}, {text = "59"}, {text = "60"},
-			-- {text = "61"}, {text = "62"}, {text = "63"}, {text = "64"}, {text = "65"}, {text = "66"}, {text = "67"}, {text = "68"}, {text = "69"}, {text = "70"},
-			-- {text = "71"}, {text = "72"}, {text = "73"}, {text = "74"}, {text = "75"}, {text = "76"}, {text = "77"}, {text = "78"}, {text = "79"}, {text = "80"},
-			-- {text = "81"}, {text = "82"}, {text = "83"}, {text = "84"}, {text = "85"}, {text = "86"}, {text = "87"}, {text = "88"}, {text = "89"}, {text = "90"},
-			-- {text = "91"}, {text = "92"}, {text = "93"}, {text = "94"}, {text = "95"}, {text = "96"}, {text = "97"}, {text = "98"}, {text = "99"}, {text = "100"},
-		}
+		local data = {}
 
 		function PocketMeroe.gui.getData () 
 			if not PocketMeroeDB then
@@ -438,48 +491,7 @@ gui.ShowMenu = function()
 
 	PocketMeroe.ShowMarkScroll()
 
-	local BuildRaidOptions = function(var, frame)
-		local raids = {
-			{ label = "All",                 value = "none" },
-			{ label = "Zul'Gurub",           value = "ZG" },
-			{ label = "Ruins of Ahn'Qiraj",  value = "AQ20" },
-			{ label = "Molten Core",         value = "MC" },
-			{ label = "Blackwing Lair",      value = "BWL" },
-			{ label = "Temple of Ahn'Qiraj", value = "AQ40" },
-			{ label = "Naxxramas",           value = "NAXX" },
-		}
-
-		local result = {}
-
-		for _, raid in ipairs(raids) do
-			table.insert(result, {
-				label = raid.label,
-				value = raid.value,
-				onclick = function()
-					automarks.scroll:UpdateList(nil, var, true, raid.value)
-				end,
-			})
-		end
-		return result
-	end
-
-	local automarksOptionsTable = {
-		always_boxfirst = false,
-		{
-			type = "select",
-			get = function()
-				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
-			end,
-			values = function () return BuildRaidOptions(Config.var, automarks.scroll) end,
-			name = "Raid:",
-			--desc = "",
-		},
-	}
-
-	automarks.scroll:UpdateList()
-	DF:BuildMenu(automarks, automarksOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
-		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
-		profileCallback)
+	buildTab2Options(automarks, tabFrameHeight)
 
 	---
 	PocketMeroeOptions:Hide();
