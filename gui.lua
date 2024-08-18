@@ -51,7 +51,6 @@ local BuildModifierOptions = function(var)
     return result
 end
 
-
 local function GetCursorPos(frame)
 	local x_f,y_f = GetCursorPosition()
 	local s = frame:GetEffectiveScale()
@@ -450,7 +449,141 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 		profileCallback)
 end
 
-gui.ShowMenu = function()
+local buildshowMarkScroll = function(parentTab)
+	if parentTab.scroll then
+		parentTab.scroll:Show()
+		return
+	end
+--[[ 		local backdrop_color = {.8, .8, .8, 0.2}
+	local backdrop_color_on_enter = {.8, .8, .8, 0.4}
+
+	local line_onenter = function (self)
+		self:SetBackdropColor (unpack (backdrop_color_on_enter))
+	end
+
+	local line_onleave = function (self)
+		self:SetBackdropColor (unpack (backdrop_color))
+	end ]]
+
+	---(self:df_scrollbox, data:table, offset:number, numlines:number)
+	local refreshGrid = function(frame, data)
+		if not frame or not data then return end
+		if not data.text then 
+			frame:Hide()  -- Hide the frame if data.text is not provided
+			return
+		end
+
+		frame.text:SetText(data.text)
+
+		if frame:GetObjectType() == "button" then
+			frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+		elseif
+			frame:GetObjectType() == "frame" then
+		end
+		frame:Show()
+	end
+
+	-- TODO: 
+	-- % over columnIndex
+	-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
+	-- data columns & refresh with if (npcData[id].instance[1] == value [+checks])
+
+	--create frames for each column in a scrollboxgrid made of lines
+	local createColumnFrame = function(line, lineIndex, columnIndex)
+		if columnIndex == 1 then
+			local fs = CreateFrame("frame", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+			fs:SetSize(100, 20)
+			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			fs.text:SetPoint("left", fs, "left", 0, 0)
+			fs.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(fs)
+
+			return fs
+		end
+		if columnIndex == 2 then
+			local marksBar = BuildMarksBar(line)
+		end
+		if true then
+			local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
+			optionButton:SetPoint("right", line, "right", 0, 0)
+			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
+			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(optionButton)
+			optionButton:SetSize(100, 20)
+
+			line._i = lineIndex
+			return optionButton
+		end
+	end
+
+	local options = {
+		width = 510,
+		height = 190,
+		--amount of horizontal lines
+		line_amount = 9,
+		--amount of columns per line
+		columns_per_line = 3,
+		--height of each line
+		line_height = 20,
+		auto_amount = false,
+		no_scroll = false,
+		no_backdrop = false,
+	}
+	local data = {}
+
+	function PocketMeroe.gui.getData () 
+		if not PocketMeroeDB then
+			print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
+			return
+		end
+		local npcData = PocketMeroe.db.profile.markersCustom
+		for id, value in pairs (npcData) do
+			--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
+			local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
+			table.insert(data, {text = tostring(unitName)})
+			table.insert(data, {text = ""})
+			table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
+		end
+		return data
+	end
+	PocketMeroe.gui.data = PocketMeroe.gui.getData()
+	parentTab.scroll = 	DF:CreateGridScrollBox(parentTab, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
+	DF:ReskinSlider(parentTab.scroll)
+	parentTab.scroll:SetPoint("bottom", parentTab, "bottom", -10, 25)
+
+	function parentTab.scroll:UpdateList(_, _, option, value, value2, mouseButton)
+			if (not parentTab.scroll:IsShown()) then
+				return
+			end
+
+			-- local npcData = PocketMeroe.db.profile.markersCustom
+			-- for id, _ in pairs (npcData) do
+			-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+			-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+			-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
+			-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+			-- 	if (zone == value or value =="none" or not value) then
+			-- 		if not name then name = id end
+			-- 		--table.insert(data, {name, zone})
+			-- 	end
+			-- end
+			-- --automarks.scroll:SetData(data)
+			parentTab.scroll:Refresh()
+	end
+end
+
+local buildshowMenu = function()
 	-- toggle scrollConfiguration menu
 
 	if not PocketMeroeDB then
@@ -526,144 +659,7 @@ gui.ShowMenu = function()
 	buildTab1Options(general, tabFrameHeight)
 	
 	--- [meroe.automarks] ---
-	function PocketMeroe.ShowMarkScroll()
-		if automarks.scroll then
-			automarks.scroll:Show()
-			return
-		end
---[[ 		local backdrop_color = {.8, .8, .8, 0.2}
-		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
-
-		local line_onenter = function (self)
-			self:SetBackdropColor (unpack (backdrop_color_on_enter))
-		end
-
-		local line_onleave = function (self)
-			self:SetBackdropColor (unpack (backdrop_color))
-		end ]]
-
-		---(self:df_scrollbox, data:table, offset:number, numlines:number)
-		local refreshGrid = function(frame, data)
-			if not frame or not data then return end
-			if not data.text then 
-				frame:Hide()  -- Hide the frame if data.text is not provided
-				return
-			end
-
-			frame.text:SetText(data.text)
-
-			if frame:GetObjectType() == "button" then
-				frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
-			elseif
-				frame:GetObjectType() == "frame" then
-			end
-			frame:Show()
-		end
-
-		-- TODO: 
-		-- % over columnIndex
-		-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
-		-- data columns & refresh with if (npcData[id].instance[1] == value [+checks])
-
-
-		--declare a function to create a column within a scroll line
-		--this function will receive the line, the line index within the scrollbox and the column index within the line
-		local createColumnFrame = function(line, lineIndex, columnIndex)
-			if columnIndex == 1 then
-				local fs = CreateFrame("frame", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
-				fs:SetSize(100, 20)
-				fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-				fs.text:SetPoint("left", fs, "left", 0, 0)
-				fs.text:SetText("Option " .. lineIndex .. columnIndex)
-
-				local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
-				highlightTexture:SetAllPoints()
-				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
-				DF:ApplyStandardBackdrop(fs)
-
-				return fs
-			end
-			if columnIndex == 2 then
-				local marksBar = BuildMarksBar(line)
-			end
-			if true then
-				local optionButton = CreateFrame("button", "$parentOptionFrame" .. lineIndex .. columnIndex, line)
-				optionButton:SetPoint("right", line, "right", 0, 0)
-				optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-				optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
-				optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
-
-				local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
-				highlightTexture:SetAllPoints()
-				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
-				DF:ApplyStandardBackdrop(optionButton)
-				optionButton:SetSize(100, 20)
-
-				line._i = lineIndex
-				return optionButton
-			end
-		end
-
-		local options = {
-			width = 510,
-			height = 190,
-			--amount of horizontal lines
-			line_amount = 9,
-			--amount of columns per line
-			columns_per_line = 3,
-			--height of each line
-			line_height = 20,
-			auto_amount = false,
-			no_scroll = false,
-			no_backdrop = false,
-		}
-		local data = {}
-
-		function PocketMeroe.gui.getData () 
-			if not PocketMeroeDB then
-				print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
-				return
-			end
-			local npcData = PocketMeroe.db.profile.markersCustom
-			for id, value in pairs (npcData) do
-				--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
-				local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
-				table.insert(data, {text = tostring(unitName)})
-				table.insert(data, {text = ""})
-				table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
-			end
-			return data
-		end
-		PocketMeroe.gui.data = PocketMeroe.gui.getData()
-		automarks.scroll = 	DF:CreateGridScrollBox(automarks, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
-		DF:ReskinSlider(automarks.scroll)
-		automarks.scroll:SetPoint("bottom", automarks, "bottom", -10, 25)
-
-		function automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
-				if (not automarks.scroll:IsShown()) then
-					return
-				end
-
-				-- local npcData = PocketMeroe.db.profile.markersCustom
-				-- for id, _ in pairs (npcData) do
-				-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
-				-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-				-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
-				-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-				-- 	if (zone == value or value =="none" or not value) then
-				-- 		if not name then name = id end
-				-- 		--table.insert(data, {name, zone})
-				-- 	end
-				-- end
-				-- --automarks.scroll:SetData(data)
-				automarks.scroll:Refresh()
-		end
-	end
-
-	PocketMeroe.ShowMarkScroll()
-
+	buildshowMarkScroll(automarks)
 	buildTab2Options(automarks, tabFrameHeight)
 
 	---
@@ -672,7 +668,7 @@ gui.ShowMenu = function()
 end
 
 gui.MenuToggle = function ()
-	local menu = PocketMeroeOptions or gui.ShowMenu();
+	local menu = PocketMeroeOptions or buildshowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
