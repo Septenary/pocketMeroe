@@ -331,7 +331,7 @@ function marks.InitMarking ()
 			end
 		end
 		-- fill in default mob data
-		print("NPC with ID", npcId, "not found in markersCustom")
+		-- print("NPC with ID", npcId, "not found in markersCustom") <-- triggers on Soft Target for w/e reason
 		if markersCustom[npcId] and markersCustom[npcId][2] then
 			if (markersCustom[npcId].markerType == {}) then
 				markersCustom[npcId][1] = {8,7,6,5,4,3,2,1}
