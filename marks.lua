@@ -312,10 +312,12 @@ function marks.InitMarking ()
 		if npcId then
 			for id, _ in pairs (markersCustom) do
 				local raidIcons, priority, zone, sortCategory, name = unpack(markersCustom[id])
-				if  (id == npcId) then
+				if  (id == npcId) and raidIcons then
 					local debugIcons = ""
 					for _, marker in ipairs(raidIcons) do
-						debugIcons = debugIcons .. "{rt" .. marker .. "}"
+						if marker then
+							debugIcons = debugIcons .. "{rt" .. marker .. "}"
+						end
 					end
 					-- print("NPC Details: ", id)
 					-- print("  Name:",       name)
