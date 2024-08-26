@@ -39,62 +39,63 @@ local default_config = {
 			shift = false,
 		},
 		markersCustom = { -- [mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
-		[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-		[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-		[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-		[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-		[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-		[14750] = {{},1,"ZG", "Trash", "Gurubashi Bat Rider"},
-		[14883] = {{},1,"ZG", "Trash", "Voodoo Slave"},
-		[11830] = {{},1,"ZG", "Trash", "Hakkari Priest"},
-		[11353] = {{},1,"ZG", "Trash", "Gurubashi Blood Drinker"},
-		[11671] = {{},1,"MC", "Trash", "Core Hound"},
-		[12076] = {{},1,"MC", "Trash", "Lava Elemental"},
-		[12100] = {{},1,"MC", "Trash", "Lava Reaver"},
-		[11659] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Destroyer"},
-		[12118] = {{5},1,"MC", "Boss", "Lucifron"},
-		[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
-		[11982] = {{},1,"MC", "Boss", "Magmadar"},
-		[12099] = {{},1,"MC", "Boss", "Garr"},
-		[12056] = {{},1,"MC", "Trash", "Firesworn"},
-		[12264] = {{},1,"MC", "Boss", "Baron Geddon"},
-		[11988] = {{},1,"MC", "Boss", "Shazzrah"},
-		[11672] = {{},1,"MC", "Trash", "Core Rager"},
-		[11662] = {{},1,"MC", "Trash", "Flamewaker Priest"},
-		[11663] = {{},1,"MC", "Trash", "Flamewaker Healer"},
-		[12468] = {{8,7,6,5,4,3,2,1},2,"BWL", "Trash", "Death Talon Hatcher"},
-		[12458] = {{1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster"},
-		[12459] = {{},1,"BWL", "Trash", "Blackwing Warlock"},
-		[12457] = {{},1,"BWL", "Trash", "Blackwing Spellbinder"},
-		[12467] = {{1},1,"BWL", "Trash", "Death Talon Captain"},
-		[12463] = {{8, 7},1,"BWL", "Trash", "Death Talon Flamescale"},
-		[12464] = {{6, 5},1,"BWL", "Trash", "Death Talon Seether"},
-		[12465] = {{4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin"},
-		[12420] = {{8,7,6,5,4,3,2,1},1,"BWL", "Ads", "Blackwing Mage"},
-		[15391] = {{8,7,6,5,4,3,2,1},1,"AQ20", "Ads", "Buru Egg"},
-		[15392] = {{1},1,"AQ20", "Ads", "Captian Qeez"},
-		[15389] = {{2},1,"AQ20", "Ads", "Captian Tuubid"},
-		[15390] = {{3},1,"AQ20", "Ads", "Captian Drenn"},
-		[15386] = {{4},1,"AQ20", "Ads", "Captian Xurrem"},
-		[15388] = {{5},1,"AQ20", "Ads", "Major Yeggeth"},
-		[15385] = {{6},1,"AQ20", "Ads", "Major Pakkon"},
-		[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
-		[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
-		[15246] = {{8,7},1,"AQ40", "Trash", "Qiraji Mindslayer"},
-		[15247] = {{8,7},1,"AQ40", "Trash", "Qiraji Brainwasher"},
-		[15312] = {{8,7},1,"AQ40", "Trash", "Obsidian Nullifier"},
-		[15262] = {{8,7},1,"AQ40", "Trash", "Obsidian Eradicator"},
-		[15233] = {{8,7,6,5,4,3,2,1},1,"AQ40", "Trash", "Vekniss Guardian"},
-		[15230] = {{8,7,6},1,"AQ40", "Trash", "Vekniss Warrior"},
-		[15252] = {{2,1},1,"AQ40", "Trash", "Qiraji Champion"},
-		[15249] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Lasher"},
-		[15250] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Slayer"},
-		[15981] = {{8,7,6,5,4},1,"NAXX", "Trash", "Naxxramas Acolyte"},
-		[16452] = {{8,7},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
-		[16017] = {{8,7,6,5},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
-		[16021] = {{8,1},1,"NAXX", "Trash", "Living Monstrosity"},
-		[16020] = {{7,6,5,4,3,2},1,"NAXX", "Trash", "Mad Scientist"},
-		[16447] = {{8,7,6,5},3,"NAXX", "Trash", "Plagued Ghoul"},
+			[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[14750] = {{8},1,"ZG", "Trash", "Gurubashi Bat Rider"},
+			[14883] = {{8},1,"ZG", "Trash", "Voodoo Slave"},
+			[11830] = {{8},1,"ZG", "Trash", "Hakkari Priest"},
+			[11353] = {{8},1,"ZG", "Trash", "Gurubashi Blood Drinker"},
+			[11671] = {{8},1,"MC", "Trash", "Core Hound"},
+			[12076] = {{8},1,"MC", "Trash", "Lava Elemental"},
+			[12100] = {{8},1,"MC", "Trash", "Lava Reaver"},
+			[11659] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Destroyer"},
+			[12118] = {{5},1,"MC", "Boss", "Lucifron"},
+			[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
+			[11982] = {{8},1,"MC", "Boss", "Magmadar"},
+			[12099] = {{8},1,"MC", "Boss", "Garr"},
+			[12056] = {{8},1,"MC", "Trash", "Firesworn"},
+			[12264] = {{8},1,"MC", "Boss", "Baron Geddon"},
+			[11988] = {{8},1,"MC", "Boss", "Shazzrah"},
+			[11672] = {{8},1,"MC", "Trash", "Core Rager"},
+			[11662] = {{8},1,"MC", "Trash", "Flamewaker Priest"},
+			[11663] = {{8},1,"MC", "Trash", "Flamewaker Healer"},
+			[12468] = {{8,7,6,5,4,3,2,1},2,"BWL", "Trash", "Death Talon Hatcher"},
+			[12458] = {{1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster"},
+			[12459] = {{8},1,"BWL", "Trash", "Blackwing Warlock"},
+			[12457] = {{8},1,"BWL", "Trash", "Blackwing Spellbinder"},
+			[12467] = {{1},1,"BWL", "Trash", "Death Talon Captain"},
+			[12463] = {{8, 7},1,"BWL", "Trash", "Death Talon Flamescale"},
+			[12464] = {{6, 5},1,"BWL", "Trash", "Death Talon Seether"},
+			[12465] = {{4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin"},
+			[12420] = {{8,7,6,5,4,3,2,1},1,"BWL", "Ads", "Blackwing Mage"},
+			[15391] = {{8,7,6,5,4,3,2,1},1,"AQ20", "Ads", "Buru Egg"},
+			[15392] = {{1},1,"AQ20", "Ads", "Captian Qeez"},
+			[15389] = {{2},1,"AQ20", "Ads", "Captian Tuubid"},
+			[15390] = {{3},1,"AQ20", "Ads", "Captian Drenn"},
+			[15386] = {{4},1,"AQ20", "Ads", "Captian Xurrem"},
+			[15388] = {{5},1,"AQ20", "Ads", "Major Yeggeth"},
+			[15385] = {{6},1,"AQ20", "Ads", "Major Pakkon"},
+			[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
+			[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
+			[15264] = {{8,7,6,5},1,"AQ40", "Trash", "Anubisath Sentinel"},
+			[15246] = {{8,7},1,"AQ40", "Trash", "Qiraji Mindslayer"},
+			[15247] = {{8,7},1,"AQ40", "Trash", "Qiraji Brainwasher"},
+			[15312] = {{8,7},1,"AQ40", "Trash", "Obsidian Nullifier"},
+			[15262] = {{8,7},1,"AQ40", "Trash", "Obsidian Eradicator"},
+			[15233] = {{8,7,6,5,4,3,2,1},1,"AQ40", "Trash", "Vekniss Guardian"},
+			[15230] = {{8,7,6},1,"AQ40", "Trash", "Vekniss Warrior"},
+			[15252] = {{2,1},1,"AQ40", "Trash", "Qiraji Champion"},
+			[15249] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Lasher"},
+			[15250] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Slayer"},
+			[15981] = {{8,7,6,5,4},1,"NAXX", "Trash", "Naxxramas Acolyte"},
+			[16452] = {{8,7},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
+			[16017] = {{8,7,6,5},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
+			[16021] = {{8,1},1,"NAXX", "Trash", "Living Monstrosity"},
+			[16020] = {{7,6,5,4,3,2},1,"NAXX", "Trash", "Mad Scientist"},
+			[16447] = {{8,7,6,5},3,"NAXX", "Trash", "Plagued Ghoul"},
 		}
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
@@ -175,7 +176,7 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
 end
 --[mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
 
-PocketMeroe.ProfileSet = function (id,var, arg)
+PocketMeroe.ProfileSet = function (id, var, arg)
 	if not PocketMeroeDB then
 		print("PocketMeroe.lua: Database not loaded! Stopping!")
 		return
@@ -190,7 +191,6 @@ PocketMeroe.ProfileSet = function (id,var, arg)
         print("PocketMeroe.lua: ProfileSet expects an argument!")
         return
     end
-    -- Ensure 'id' is a valid number and convert to integer
 
 
     -- Ensure markersCustom is properly initialized
@@ -232,7 +232,57 @@ PocketMeroe.ProfileSet = function (id,var, arg)
     if func then
         func()
     else
-		print("PocketMeroe.lua: ProfileSet("..tostring(var)..") not found!")
+		print("PocketMeroe.lua: ProfileGet("..tostring(var)..") not found!")
+    end
+
+end
+
+PocketMeroe.ProfileGet = function (id, var)
+	if not PocketMeroeDB then
+		print("PocketMeroe.lua: Database not loaded! Stopping!")
+		return
+	end
+
+	id = tonumber(id)
+    if not id or id <= 0 then
+        print("PocketMeroe.lua: mobID expects a mobID!")
+        return
+    end
+
+
+    -- Ensure markersCustom is properly initialized
+    if not PocketMeroe.db.profile.markersCustom then
+        PocketMeroe.db.profile.markersCustom = {}
+		print("PocketMeroe.lua: Database dumped!")
+    end
+    if not PocketMeroe.db.profile.markersCustom[id] then
+		print("PocketMeroe.lua: Database error!")
+        PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
+    end
+
+	local functionMapping = {
+		customMarks = function()
+			return PocketMeroe.db.profile.markersCustom[id][1]
+		end,
+		priority = function()
+			return PocketMeroe.db.profile.markersCustom[id][2]
+		end,
+		instanceShortcode = function()
+			return PocketMeroe.db.profile.markersCustom[id][3]
+		end,
+		monsterType = function ()
+			return PocketMeroe.db.profile.markersCustom[id][4]
+		end,
+		unitName = function ()
+			return PocketMeroe.db.profile.markersCustom[id][5]
+		end,
+	}
+
+	local func = functionMapping[var]
+    if func then
+        return func()
+    else
+		print("PocketMeroe.lua: ProfileGet("..tostring(var)..") not found!")
     end
 
 end

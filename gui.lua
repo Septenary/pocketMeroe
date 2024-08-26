@@ -22,7 +22,9 @@ local raidIcons = {
 	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
 }
 
-gui.autoMarkState = gui.autoMarkState or {8, 7, 6, 5, 4, 3, 2, 1}
+local profileCallback = function()
+	-- executes whenever profile settings are changed
+end
 
 local SetModifier = function(_, var, value, key)
 	if Config[var] then
@@ -51,260 +53,6 @@ local BuildModifierOptions = function(var)
     return result
 end
 
--- get cursor position relative to frame
-local function GetCursorPos(frame)
-	local x_f,y_f = GetCursorPosition()
-	local s = frame:GetEffectiveScale()
-	x_f, y_f = x_f/s, y_f/s
-	local x,y = frame:GetLeft(),frame:GetTop()
-	x = x_f-x
-	y = (y_f-y)*(-1)
-	return x,y
-end
-
-local pm_data_names,pm_data_names_state = {},{}
-function UpdateData()
-	wipe(pm_data_names)
-	wipe(pm_data_names_state)
-	if type(gui.markMax) ~= "number" or gui.markMax < 100 then
-		gui.markMax = 100
-	end
-	if type(gui.markMax) == "number" and gui.markMax > 1000 then
-		gui.markMax = 1000
-	end
-	local lastNonZeroIndex = 0
-	for i=1,9 do -- 9 is hard-code from CreateGridScrollBox
-		--local name = gui.autoMarkNames[i]
-		local mobIDs = PocketMeroe.gui.getData()
-		if mobIDs and mobIDs[i] then
-			pm_data_names[ (name):lower() ] = true
-			pm_data_names_state[ (name):lower() ] = gui.autoMarkState[i] or {8, 7, 6, 5, 4, 3, 2, 1}
-			print(pm_data_names, pm_data_names_state)
-			lastNonZeroIndex = i
-		end
-	end
-	if lastNonZeroIndex < 100 then
-		lastNonZeroIndex = 100
-	end
-	gui.markMax = ceil(lastNonZeroIndex / 50) * 50
-end
-
-local function Tab2LineUpdate(self)
-	local num = self._i
-	--self.edit:SetText(gui.autoMarkNames[num] or "")
-	self.marks.state = gui.autoMarkState[num] or {8, 7, 6, 5, 4, 3, 2, 1}
-	
-	for i=1,#self.marks.list do
-		local mark = self.marks.state[i]
-		if mark then
-			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
-			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,9))
-		else
-			self.marks.list[i]:SetTexture()
-		end
-		if mark == self.marks.picked_mark then
-			self.marks.list[i]:SetAlpha(.7)
-		else
-			self.marks.list[i]:SetAlpha(1)
-		end
-		self.marks.list[i]:SetShown(i <= 8 or self.isExpand)
-	end
-	if self.isExpand and not self.isExpanded then
-		self.marks:SetWidth(20*17)
-		self.edit:Size(470-20*8,20)
-		self.isExpanded = true
-	elseif not self.isExpand and self.isExpanded then
-		self.marks:SetWidth(20*9)
-		self.edit:Size(470,20)
-		self.isExpanded = false
-	end
-end
-
-local function Tab2MarksOnUpdate(self)
-	if not IsMouseButtonDown(1) then
-		self:SetScript("OnUpdate",nil)
-		self.picked = nil
-		self.picked_mark = nil
-		gui.autoMarkState[self:GetParent()._i] = self.state
-		self:GetParent():Update()
-		UpdateData()
-		return
-	end
-	local currCursor = 1
-	for i=1,self.state_len do
-		local x,y = GetCursorPos(self.list[i])
-		if x < 0 then
-			break
-		end
-		currCursor = i
-	end
-	--local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
-	-- prolly did this wrong..
-	local function removeElementAtIndex(t, i)
-		local newTable = {}
-		for index, value in ipairs(t) do
-			if index ~= i then
-				table.insert(newTable, value)
-			end
-		end
-		return newTable
-	end
-	
-	local function insertElementAtIndex(t, element, index)
-		local newTable = {}
-		for i = 1, index - 1 do
-			table.insert(newTable, t[i])
-		end
-		table.insert(newTable, element)
-		for i = index, #t do
-			table.insert(newTable, t[i])
-		end
-		return newTable
-	end
-	
-	-- Remove the picked element
-	local tempState = removeElementAtIndex(self.saved_state, self.picked)
-	-- Create newState by inserting the picked element at currCursor
-	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
-	
-	-- for _, v in ipairs(newState) do
-	-- 	print(v)
-	-- end
-	print (newState)
-	if newState ~= self.state then
-		self.state = newState
-		self:GetParent():Update()
-	end
-end
-local function Tab2MarksOnMouseDown(self,button)
-	self.picked_mark = nil
-	if button == "LeftButton" then
-		--print("LMB")
-		local x,y = GetCursorPos(self.list.refresh)
-		--print("x", x, "y", y)
-		if x >= 0 and x <= 19 then
-			--self.state = {8, 7, 6, 5, 4, 3, 2, 1}
-			--gui.autoMarkState[self:GetParent()._i] = self.state
-			self:GetParent():Update()
-			UpdateData()
-			return
-		end
-	
-		self.picked = nil
-		for i=1,#self.list do
-			if self.list[i]:IsShown() then
-				local x,y = GetCursorPos(self.list[i])
-				--print("x", x, "y", y)
-				if x >= 0 and x <= 19 then
-					self.picked = i
-					--print(self.picked)
-					self.saved_state = self.state
-					self.state_len = #self.state
-					if self.state_len < i then
-						return
-					end
-					break
-				end
-			end
-		end
-		if self.picked then
-			self.picked_mark = self.saved_state[self.picked]
-			self:SetScript("OnUpdate",Tab2MarksOnUpdate)
-			self:GetParent():Update()
-		end
-	elseif button == "RightButton" then
-		--print("RMB")
-		local x,y = GetCursorPos(self.list.refresh)
-		if x >= 0 and x <= 19 then
-			--self:GetParent().isExpand = not self:GetParent().isExpand
-			self:GetParent():Update()
-			return
-		end
-
-		for i=1,#self.list do
-			if self.list[i]:IsShown() then
-				local x,y = GetCursorPos(self.list[i])
-				if x >= 0 and x <= 19 then
-					--local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
-						local function removeElementAtIndex(t, i)
-							local newState = {}
-							for index, value in ipairs(t) do
-								if index ~= i then
-									table.insert(newState, value)
-								end
-							end
-							return newState
-						end
-						
-						-- Example usage
-						local self = { state = {8, 7, 6, 5, 4, 3, 2, 1} }
-						local i = 3
-						local newState = removeElementAtIndex(self.state, i)
-						
-						-- Print the new state to verify
-						for _, v in ipairs(newState) do
-							print(v)
-						end
-					self.state = newState
-					gui.autoMarkState[self:GetParent()._i] = newState
-					self:GetParent():Update()
-					UpdateData()
-					break
-				end
-			end
-		end			
-	end
-end
-local function Tab2MarksListOnEnter(self)
-	self:GetParent().Background:Show()
-end
-local function Tab2MarksListOnLeave(self)
-	self:GetParent().Background:Hide()
-end
-
-
-local BuildMarksBar = function(parent)
-	local line = CreateFrame("Frame",nil,parent)
-	line:SetPoint("LEFT",5,0)
-	line:SetPoint("RIGHT",-130,0)
-	line:SetHeight(25)
-	for i=1,9 do
-		local marks = CreateFrame("Frame",nil,line)
-		marks:EnableMouse(true)
-		marks.Background = marks:CreateTexture(nil,"BACKGROUND")
-		marks.Background:SetColorTexture(0,0,0,.3)
-		marks.Background:SetPoint("CENTER")
-		marks:SetPoint("RIGHT",-5,0)
-		marks:SetSize(20*9,20)
-		marks.list = {}
-		for i=1,16 do
-			marks.list[i] = marks:CreateTexture(nil,"ARTWORK")
-			marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
-			marks.list[i]:SetSize(18,18)
-			marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
-			SetRaidTargetIconTexture(marks.list[i], i)
-			marks.list[i]:SetShown(i <= 8)
-		end
-		marks.list.refresh = marks:CreateTexture(nil,"ARTWORK")
-		marks.list.refresh:SetPoint("RIGHT",0,0)
-		marks.list.refresh:SetSize(18,18)
-		marks.list.refresh:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-		marks.list.refresh:SetTexCoord(0.125,0.1875,0.5,0.625)
-		marks.list.refresh:SetVertexColor(1,1,1,0.7)	
-	
-		marks:SetScript("OnMouseDown",Tab2MarksOnMouseDown)
-		
-		marks.state = gui.autoMarkState[i] or {8, 7, 6, 5, 4, 3, 2, 1}
-		
-		line.marks = marks
-		
-		line.Update = Tab2LineUpdate
-		line:Update()
-		
-		marks:SetScript("OnEnter",Tab2MarksListOnEnter)
-		marks:SetScript("OnLeave",Tab2MarksListOnLeave)
-	end
-end
 
 local OptionsOnClick = function(_, _, option, value, value2, mouseButton)
 	if option == "use_mouseover" then
@@ -365,10 +113,10 @@ local buildOptionsFrameTabs = function(parent, tabs)
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(optionsFrame, "pocketMeroe", "$parent.tabContainer", tabList, optionsTable,
+	local tabContainer = DF:CreateTabContainer(parent, "pocketMeroe", "$parent.tc", tabList, optionsTable,
 		hookList)
-	tabContainer:SetPoint("center", optionsFrame, "center", 0, 0)
-	tabContainer:SetSize(optionsFrame:GetSize())
+	tabContainer:SetPoint("center", parent, "center", 0, 0)
+	tabContainer:SetSize(parent:GetSize())
 	tabContainer:Show()
 
 	local backdropTable = { edgeFile = [[Interface\Buttons\WHITE8X8]], edgeSize = 1, bgFile =
@@ -454,7 +202,7 @@ local buildTab1Options = function(parentTab, tabFrameHeight)
 		},
 		{type = "blank"},
 	}
-	DF:BuildMenu(general, config.generalOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+	DF:BuildMenu(parentTab, generalOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
 
@@ -505,6 +253,414 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 		profileCallback)
 end
 
+-- get cursor position relative to a frame
+local function GetCursorPos(frame)
+	local x_f,y_f = GetCursorPosition()
+	local s = frame:GetEffectiveScale()
+	x_f, y_f = x_f/s, y_f/s
+	local x,y = frame:GetLeft(),frame:GetTop()
+	x = x_f-x
+	y = (y_f-y)*(-1)
+	return x,y
+end
+
+local function Tab2LineUpdate(self)
+	local num = self._i
+	--self.edit:SetText(gui.autoMarkNames[num] or "")
+	--self.marks.state = gui.autoMarkState[num] or {8, 7, 6, 5, 4, 3, 2, 1}
+	if not self.id then self.marks.state = {8, 7, 6, 5, 4, 3, 2, 1} end
+	--print ("Update ", self.id)
+	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks")
+	if self.marks.state == {} then self.marks.state = {8, 7, 6, 5, 4, 3, 2, 1} end
+	--print("State: ", self.marks.state)
+	for i=1,#self.marks.list do
+		local mark = self.marks.state[i]
+		if mark and mark ~= "" then
+			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark,9))
+		else
+			self.marks.list[i]:SetTexture()
+		end
+		if mark == self.marks.picked_mark then
+			self.marks.list[i]:SetAlpha(.7)
+		else
+			self.marks.list[i]:SetAlpha(1)
+		end
+		self.marks.list[i]:SetShown(i <= 8 or self.isExpand)
+	end
+	if self.isExpand and not self.isExpanded then
+		self.marks:SetWidth(20*17)
+		self.edit:Size(470-20*8,20)
+		self.isExpanded = true
+	elseif not self.isExpand and self.isExpanded then
+		self.marks:SetWidth(20*9)
+		self.edit:Size(470,20)
+		self.isExpanded = false
+	end
+end
+local function Tab2MarksOnUpdate(self)
+
+	if not IsMouseButtonDown(1) then
+		self:SetScript("OnUpdate",nil)
+		self.picked = nil
+		self.picked_mark = nil
+		self.id = self:GetParent().id
+		--print("id: ", self.id)
+		self.state = PocketMeroe.ProfileGet(self.id, "customMarks")
+		
+		--gui.autoMarkState[self:GetParent():GetParent()._i] = self.state
+		self:GetParent():Update()
+		return
+	end
+	local currCursor = 1
+	for i=1,self.state_len do
+		local x,y = GetCursorPos(self.list[i])
+		if x < 0 then
+			break
+		end
+		currCursor = i
+	end
+	--local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
+	-- prolly did this wrong..
+	local function removeElementAtIndex(t, i)
+		local newTable = {}
+		for index, value in ipairs(t) do
+			if index ~= i then
+				table.insert(newTable, value)
+			end
+		end
+		return newTable
+	end
+	
+	local function insertElementAtIndex(t, element, index)
+		local newTable = {}
+		for i = 1, index - 1 do
+			table.insert(newTable, t[i])
+		end
+		table.insert(newTable, element)
+		for i = index, #t do
+			table.insert(newTable, t[i])
+		end
+		return newTable
+	end
+	
+	-- Remove the picked element
+	local tempState = removeElementAtIndex(self.saved_state, self.picked)
+	-- Create newState by inserting the picked element at currCursor
+	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
+	
+	-- for _, v in ipairs(newState) do
+	-- 	print(v)
+	-- end
+	-- print (newState)
+
+	if newState ~= self.state then
+		self.state = newState
+		self:GetParent():Update()
+	end
+end
+local function Tab2MarksOnMouseDown(self,button)
+	self.id = self:GetParent().id
+	--print("Mousedown: ", self.id)
+	self.state = PocketMeroe.ProfileGet(self.id, "customMarks")
+	--print("mdState: ", self.state)
+
+	self.picked_mark = nil
+	if button == "LeftButton" then
+		--print("LMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		--print("x", x, "y", y)
+		if x >= 0 and x <= 19 then
+			--self.state = {8, 7, 6, 5, 4, 3, 2, 1}
+			--gui.autoMarkState[self:GetParent()._i] = self.state
+			self:GetParent():Update()
+			return
+		end
+	
+		self.picked = nil
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				--print("x", x, "y", y)
+				if x >= 0 and x <= 19 then
+					self.picked = i
+					--print(self.picked)
+					self.saved_state = self.state
+					self.state_len = #self.state
+					if self.state_len < i then
+						return
+					end
+					break
+				end
+			end
+		end
+		if self.picked then
+			self.picked_mark = self.saved_state[self.picked]
+			self:SetScript("OnUpdate",Tab2MarksOnUpdate)
+			self:GetParent():Update()
+		end
+	elseif button == "RightButton" then
+		--print("RMB")
+		local x,y = GetCursorPos(self.list.refresh)
+		if x >= 0 and x <= 19 then
+			--self:GetParent().isExpand = not self:GetParent().isExpand
+			self:GetParent():Update()
+			return
+		end
+
+
+		for i=1,#self.list do
+			if self.list[i]:IsShown() then
+				local x,y = GetCursorPos(self.list[i])
+				if x >= 0 and x <= 19 then
+					--local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
+					local function removeElementAtIndex(t, i)
+						local newState = {}
+						for index, value in ipairs(t) do
+							if index ~= i then
+								table.insert(newState, value)
+							end
+						end
+						return newState
+					end
+					
+					local newState = removeElementAtIndex(self.state, i)						
+					-- Print the new state to verify
+					-- for _, v in ipairs(newState) do
+					-- 	print(v)
+					-- end
+					self.state = newState
+					if self.id then
+						--print("list: ", self.id)
+						--PocketMeroe.ProfileSet(self.id, "customMarks", self.state)
+					end
+					--gui.autoMarkState[self:GetParent()._i] = newState
+					self:GetParent():Update()
+					break
+				end
+			end
+		end			
+	end
+end
+
+local BuildTab2MarksBar = function(parent)
+	local line = CreateFrame("Frame",nil,parent)
+	do
+		line.id = parent._id
+		line:SetPoint("LEFT",5,0)
+		line:SetPoint("RIGHT",-130,0)
+		line:SetHeight(25)
+	end
+
+	local marks = CreateFrame("Frame",nil,line)
+	do
+		marks:EnableMouse(true)
+		marks.Background = marks:CreateTexture(nil,"BACKGROUND")
+		marks.Background:SetColorTexture(0,0,0,.3)
+		marks.Background:SetPoint("CENTER")
+		marks:SetPoint("RIGHT",-5,0)
+		marks:SetSize(20*9,20)
+		marks.list = {}
+		for i=1,16 do
+			marks.list[i] = marks:CreateTexture(nil,"ARTWORK")
+			marks.list[i]:SetPoint("LEFT",(i-1)*20,0)
+			marks.list[i]:SetSize(18,18)
+			marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(marks.list[i], i)
+			marks.list[i]:SetShown(i <= 8)
+		end
+		marks.list.refresh = marks:CreateTexture(nil,"ARTWORK")
+		marks.list.refresh:SetPoint("RIGHT",0,0)
+		marks.list.refresh:SetSize(18,18)
+		marks.list.refresh:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+		marks.list.refresh:SetTexCoord(0.125,0.1875,0.5,0.625)
+		marks.list.refresh:SetVertexColor(1,1,1,0.7)	
+		
+		marks:SetScript("OnMouseDown",Tab2MarksOnMouseDown)
+		
+
+		marks.state = {8, 7, 6, 5, 4, 3, 2, 1}
+		--gui.autoMarkState[i] or {8, 7, 6, 5, 4, 3, 2, 1}
+		
+		line.marks = marks
+		
+		line.Update = Tab2LineUpdate
+		line:Update()
+	end
+		--marks:SetScript("OnEnter",Tab2MarksListOnEnter)
+		--marks:SetScript("OnLeave",Tab2MarksListOnLeave)
+end
+-- local function Tab2MarksListOnEnter(self)
+-- 	self:GetParent().Background:Show()
+-- end
+-- local function Tab2MarksListOnLeave(self)
+-- 	self:GetParent().Background:Hide()
+-- end
+
+
+function PocketMeroe.ShowMarkScroll(parentTab)
+	if parentTab.scroll then
+		parentTab.scroll:Show()
+		return
+	end
+--[[ 		local backdrop_color = {.8, .8, .8, 0.2}
+	local backdrop_color_on_enter = {.8, .8, .8, 0.4}
+
+	local line_onenter = function (self)
+		self:SetBackdropColor (unpack (backdrop_color_on_enter))
+	end
+
+	local line_onleave = function (self)
+		self:SetBackdropColor (unpack (backdrop_color))
+	end ]]
+
+	---(self:df_scrollbox, data:table, offset:number, numlines:number)
+	local refreshGrid = function(frame, data)
+		local npcData = PocketMeroe.db.profile.markersCustom
+		if not frame or not data then return end
+		if not data.text then
+			frame:Hide()  -- Hide the frame if data.text is not provided
+			return
+		end
+
+		frame.text:SetText(data.text)
+
+		--print(DF.ScrollBoxFunctions:GetData(frame))
+		if frame:GetObjectType() == "button" then
+			frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
+		elseif
+			frame:GetObjectType() == "frame" then
+		end
+		frame:Show()
+	end
+
+	-- TODO: 
+	-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
+	-- data columns & refresh with if (npcData[id].instance[1] == value [+checks]) -- SEARCH? searchBox df_searchbox
+
+
+	--declare a function to create a column within a scroll line
+	--this function will receive the line, the line index within the scrollbox and the column index within the line
+
+
+	local options = {
+		width = 510,
+		height = 190,
+		--amount of horizontal lines
+		line_amount = 9,
+		--amount of columns per line
+		columns_per_line = 3,
+		--height of each line
+		line_height = 20,
+		auto_amount = false,
+		no_scroll = false,
+		no_backdrop = false,
+	}
+	local data = {}
+
+	function PocketMeroe.gui.getData () 
+		if not PocketMeroeDB then
+			print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
+			return
+		end
+		local npcData = PocketMeroe.db.profile.markersCustom
+
+		for id, value in pairs (npcData) do
+			--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
+			local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
+
+			table.insert(data, {text = tostring(unitName)})
+			table.insert(data, {text = tostring(id)})
+			table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
+		end
+		return data
+	end
+
+	local createColumnFrame = function(line, lineIndex, columnIndex)
+		if line then
+			line._i = lineIndex
+		end
+		if columnIndex == 1 then
+			local fs = CreateFrame("frame", "$parentG" .. lineIndex .. columnIndex, line)
+			fs:SetSize(100, 20)
+			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			fs.text:SetPoint("left", fs, "left", 0, 0)
+			fs.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(fs)
+
+			return fs
+		end
+		if columnIndex == 2 then
+			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			optionButton:SetPoint("center", line, "center", 0, 0)
+			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
+			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+			
+			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(optionButton)
+			optionButton:SetSize(100, 20)
+			return optionButton
+		end
+		if columnIndex == 3 then
+			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			optionButton:SetPoint("right", line, "right", 0, 0)
+			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
+			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+
+			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			highlightTexture:SetAllPoints()
+			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
+
+			DF:ApplyStandardBackdrop(optionButton)
+			optionButton:SetSize(100, 20)
+			return optionButton
+		end
+	end
+
+
+	PocketMeroe.gui.data = PocketMeroe.gui.getData()
+	parentTab.scroll = 	DF:CreateGridScrollBox(parentTab, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
+	DF:ReskinSlider(parentTab.scroll)
+	parentTab.scroll:SetPoint("bottom", parentTab, "bottom", -10, 25)
+	gui.automarks.scroll:Refresh()
+
+	for i, line in ipairs(parentTab.scroll:GetFrames()) do
+		line._id = line.optionFrames[2].text:GetText()
+		print ("line_id", line._id)
+		BuildTab2MarksBar(line)
+	end
+
+	function gui.automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
+			if (gui.automarks.scroll and (not gui.automarks.scroll:IsShown())) then
+				return
+			end
+
+			-- local npcData = PocketMeroe.db.profile.markersCustom
+			-- for id, _ in pairs (npcData) do
+			-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
+			-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
+			-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
+			-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
+			-- 	if (zone == value or value =="none" or not value) then
+			-- 		if not name then name = id end
+			-- 		--table.insert(data, {name, zone})
+			-- 	end
+			-- end
+			-- --automarks.scroll:SetData(data)
+			gui.automarks.scroll:Refresh()
+	end
+end
+
 gui.ShowMenu = function()
 	-- toggle scrollConfiguration menu
 
@@ -516,14 +672,14 @@ gui.ShowMenu = function()
 	ClearModifier = Config.clear_modifier
 	MarkingModifier = Config.marking_modifier
 
-	if (PocketMeroeOptions) then
-		PocketMeroeOptions:Show()
+	if (meroe) then
+		meroe:Show()
 		return
 	end
 
 
 	--build the options window
-	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "PocketMeroeOptions")
+	local optionsFrame = DF:CreateSimplePanel ("UIParent", 560, 330, "pocketMeroe Config", "meroe")
 
 	buildStatusAuthorBar(optionsFrame)
 	local tabContainer = buildOptionsFrameTabs(optionsFrame)	-- build the tabs
@@ -576,158 +732,26 @@ gui.ShowMenu = function()
 	local general = tabContainer.AllFrames[1]
 	local automarks = tabContainer.AllFrames[2]
 	local tabFrameHeight = general:GetHeight()
+	
+	-- immediately add this to "namespace"
+	gui.general = general
+	gui.automarks = automarks
 
 	---  [meroe.general]  ---
 	buildTab1Options(general, tabFrameHeight)
 	
+	
 	--- [meroe.automarks] ---
-	function PocketMeroe.ShowMarkScroll()
-		if automarks.scroll then
-			automarks.scroll:Show()
-			return
-		end
---[[ 		local backdrop_color = {.8, .8, .8, 0.2}
-		local backdrop_color_on_enter = {.8, .8, .8, 0.4}
-
-		local line_onenter = function (self)
-			self:SetBackdropColor (unpack (backdrop_color_on_enter))
-		end
-
-		local line_onleave = function (self)
-			self:SetBackdropColor (unpack (backdrop_color))
-		end ]]
-
-		---(self:df_scrollbox, data:table, offset:number, numlines:number)
-		local refreshGrid = function(frame, data)
-			if not frame or not data then return end
-			if not data.text then 
-				frame:Hide()  -- Hide the frame if data.text is not provided
-				return
-			end
-
-			frame.text:SetText(data.text)
-
-			if frame:GetObjectType() == "button" then
-				frame:SetScript("OnClick", function(self) print("clicked option " .. data.text) end)
-			elseif
-				frame:GetObjectType() == "frame" then
-			end
-			frame:Show()
-		end
-
-		-- TODO: 
-		-- % over columnIndex
-		-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
-		-- data columns & refresh with if (npcData[id].instance[1] == value [+checks])
-
-
-		--declare a function to create a column within a scroll line
-		--this function will receive the line, the line index within the scrollbox and the column index within the line
-		local createColumnFrame = function(line, lineIndex, columnIndex)
-			if columnIndex == 1 then
-				local fs = CreateFrame("frame", "$parentG" .. lineIndex .. columnIndex, line)
-				fs:SetSize(100, 20)
-				fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-				fs.text:SetPoint("left", fs, "left", 0, 0)
-				fs.text:SetText("Option " .. lineIndex .. columnIndex)
-
-				local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
-				highlightTexture:SetAllPoints()
-				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
-				DF:ApplyStandardBackdrop(fs)
-
-				return fs
-			end
-			if columnIndex == 2 then
-				local marksBar = BuildMarksBar(line)
-			end
-			if true then
-				local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
-				optionButton:SetPoint("right", line, "right", 0, 0)
-				optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-				optionButton.text:SetPoint("right", optionButton, "right", 0, 0)
-				optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
-
-				local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
-				highlightTexture:SetAllPoints()
-				highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
-				DF:ApplyStandardBackdrop(optionButton)
-				optionButton:SetSize(100, 20)
-
-				line._i = lineIndex
-				return optionButton
-			end
-		end
-
-		local options = {
-			width = 510,
-			height = 190,
-			--amount of horizontal lines
-			line_amount = 9,
-			--amount of columns per line
-			columns_per_line = 3,
-			--height of each line
-			line_height = 20,
-			auto_amount = false,
-			no_scroll = false,
-			no_backdrop = false,
-		}
-		local data = {}
-
-		function PocketMeroe.gui.getData () 
-			if not PocketMeroeDB then
-				print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
-				return
-			end
-			local npcData = PocketMeroe.db.profile.markersCustom
-			for id, value in pairs (npcData) do
-				--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
-				local customMarks, priority, instanceShortcode,monsterType,unitName = unpack(value)
-				table.insert(data, {text = tostring(unitName)})
-				table.insert(data, {text = ""})
-				table.insert(data, {text = tostring(instanceShortcode) .." ".. tostring(monsterType)})
-			end
-			return data
-		end
-		PocketMeroe.gui.data = PocketMeroe.gui.getData()
-		automarks.scroll = 	DF:CreateGridScrollBox(automarks, "$parentScroll", refreshGrid, PocketMeroe.gui.data, createColumnFrame, options)
-		DF:ReskinSlider(automarks.scroll)
-		automarks.scroll:SetPoint("bottom", automarks, "bottom", -10, 25)
-
-		function automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
-				if (not automarks.scroll:IsShown()) then
-					return
-				end
-
-				-- local npcData = PocketMeroe.db.profile.markersCustom
-				-- for id, _ in pairs (npcData) do
-				-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
-				-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-				-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
-				-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-				-- 	if (zone == value or value =="none" or not value) then
-				-- 		if not name then name = id end
-				-- 		--table.insert(data, {name, zone})
-				-- 	end
-				-- end
-				-- --automarks.scroll:SetData(data)
-				automarks.scroll:Refresh()
-		end
-	end
-
-	PocketMeroe.ShowMarkScroll()
-
+	PocketMeroe.ShowMarkScroll(automarks)
 	buildTab2Options(automarks, tabFrameHeight)
 
 	---
-	PocketMeroeOptions:Hide();
-	return PocketMeroeOptions;
+	meroe:Hide();
+	return meroe;
 end
 
 gui.MenuToggle = function ()
-	local menu = PocketMeroeOptions or gui.ShowMenu();
+	local menu = meroe or gui.ShowMenu();
 	if (menu) then
 		menu:SetShown(not menu:IsShown());
 		--needs to visually reset after closing the options menu
