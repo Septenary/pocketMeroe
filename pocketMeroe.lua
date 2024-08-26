@@ -39,11 +39,11 @@ local default_config = {
 			shift = false,
 		},
 		markersCustom = { -- [mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
-			[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-			[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-			[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-			[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
-			[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "Boss", "AA"},
+			[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Prisoner"},
+			[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Captive"},
+			[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Inmate"},
+			[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Horde Guard"},
+			[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Booty Bay Bruiser"},
 			[14750] = {{8},1,"ZG", "Trash", "Gurubashi Bat Rider"},
 			[14883] = {{8},1,"ZG", "Trash", "Voodoo Slave"},
 			[11830] = {{8},1,"ZG", "Trash", "Hakkari Priest"},
@@ -208,29 +208,29 @@ PocketMeroe.ProfileSet = function (id, var, arg)
 				return
 			end
 			PocketMeroe.db.profile.markersCustom[id][1] = arg -- expects an actual table!
-			print("PocketMeroe.lua: ProfileSet(\"customMarks\") set for "..tostring(id))
+			--print("PocketMeroe.lua: ProfileSet(\"customMarks\") set for "..tostring(id))
 		end,
 		priority = function()
 			PocketMeroe.db.profile.markersCustom[id][2] = tonumber(arg)
-			print("PocketMeroe.lua: ProfileSet(\"priority\") set for "..tostring(id))
+			--print("PocketMeroe.lua: ProfileSet(\"priority\") set for "..tostring(id))
 		end,
 		instanceShortcode = function()
 			PocketMeroe.db.profile.markersCustom[id][3] = arg
-			print("PocketMeroe.lua: ProfileSet(\"instanceShortcode\") set for"..tostring(id))
+			--print("PocketMeroe.lua: ProfileSet(\"instanceShortcode\") set for"..tostring(id))
 		end,
 		monsterType = function ()
 			PocketMeroe.db.profile.markersCustom[id][4] = arg
-			print("PocketMeroe.lua: ProfileSet(\"monsterType\") set for"..tostring(id))
+			--print("PocketMeroe.lua: ProfileSet(\"monsterType\") set for"..tostring(id))
 		end,
 		unitName = function ()
 			PocketMeroe.db.profile.markersCustom[id][5] = arg
-			print("PocketMeroe.lua: ProfileSet(\"unitName\") set for "..tostring(id))
+			--print("PocketMeroe.lua: ProfileSet(\"unitName\") set for "..tostring(id))
 		end,
 	}
 
 	local func = functionMapping[var]
     if func then
-        func()
+        func(arg)
     else
 		print("PocketMeroe.lua: ProfileGet("..tostring(var)..") not found!")
     end
@@ -300,5 +300,3 @@ mainFrame:SetScript("OnEvent", PocketMeroe_OnLoad);
 
 PocketMeroe.main = main
 _G["PocketMeroe"] = PocketMeroe
-
-PocketMeroe.ProfileSet(1706, "customMarks", {4})
