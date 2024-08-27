@@ -591,7 +591,7 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 		end
 		if columnIndex == 1 then
 			local fs = CreateFrame("frame", "$parentG" .. lineIndex .. columnIndex, line)
-			fs:SetSize(100, 20)
+			fs:SetSize(175, 20)
 			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 			fs.text:SetPoint("LEFT", fs, "LEFT", 0, 0)
 			fs.text:SetText("Option " .. lineIndex .. columnIndex)
@@ -606,22 +606,20 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 		end
 		if columnIndex == 2 then
 			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			optionButton:SetSize(135, 20)
 			optionButton:SetPoint("LEFT", line, "LEFT", 0, 0)
 			optionButton.text = optionButton:CreateFontString(nil, "BACKGROUND", "GameFontNormal")
 			optionButton.text:SetPoint("CENTER", optionButton, "CENTER", 0, 0)
 			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+			optionButton:SetAlpha(0)
 			optionButton.text:SetAlpha(0)
 
-			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
-			highlightTexture:SetAllPoints()
-			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
 			DF:ApplyStandardBackdrop(optionButton)
-			optionButton:SetSize(135, 20)
 			return optionButton
 		end
 		if columnIndex == 3 then
 			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			optionButton:SetSize(12, 20)
 			optionButton:SetPoint("RIGHT", line, "RIGHT", 0, 0)
 			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 			optionButton.text:SetPoint("RIGHT", optionButton, "RIGHT", 0, 0)
@@ -632,7 +630,6 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
 			DF:ApplyStandardBackdrop(optionButton)
-			optionButton:SetSize(50, 20)
 			return optionButton
 		end
 	end
