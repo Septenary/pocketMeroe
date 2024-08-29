@@ -11,7 +11,7 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
 local _, PocketMeroe = ...
-local version = "v0.0.7"
+local version = "v0.0.8"
 local config = {};
 
 local main = {}
