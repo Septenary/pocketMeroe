@@ -52,6 +52,7 @@ local default_config = {
 			[12076] = {{8},1,"MC", "Trash", "Lava Elemental"},
 			[12100] = {{8},1,"MC", "Trash", "Lava Reaver"},
 			[11659] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Destroyer"},
+			[11658] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Giant"},
 			[12118] = {{5},1,"MC", "Boss", "Lucifron"},
 			[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
 			[11982] = {{8},1,"MC", "Boss", "Magmadar"},
@@ -86,11 +87,14 @@ local default_config = {
 			[15312] = {{8,7},1,"AQ40", "Trash", "Obsidian Nullifier"},
 			[15262] = {{8,7},1,"AQ40", "Trash", "Obsidian Eradicator"},
 			[15233] = {{8,7,6,5,4,3,2,1},1,"AQ40", "Trash", "Vekniss Guardian"},
+			[15240] = {{8,7,6,5},1,"AQ40", "Trash", "Vekniss Hive Crawler"},
 			[15230] = {{8,7,6},1,"AQ40", "Trash", "Vekniss Warrior"},
 			[15252] = {{2,1},1,"AQ40", "Trash", "Qiraji Champion"},
 			[15249] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Lasher"},
 			[15250] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Slayer"},
 			[15981] = {{8,7,6,5,4},1,"NAXX", "Trash", "Naxxramas Acolyte"},
+			[16506] = {{4,3,2,1},1,"NAXX", "Trash", "Naxxramas Worshipper"},
+			[15974] = {{7,6,5,4,3,2,1},1,"NAXX", "Trash", "Dread Creeper"},
 			[16452] = {{8,7},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
 			[16017] = {{8,7,6,5},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
 			[16021] = {{8,1},1,"NAXX", "Trash", "Living Monstrosity"},
@@ -287,6 +291,28 @@ PocketMeroe.ProfileGet = function (id, var)
 
 end
 
+PocketMeroe.ProfileClear = function (id, var) -- right now it just nukes your profile to corruption. it should be per unit
+	if not PocketMeroeDB then
+		print("PocketMeroe.lua: Database not loaded! Stopping!")
+		return
+	end
+
+	id = tonumber(id)
+    if not id or id <= 0 then
+        print("PocketMeroe.lua: mobID expects a mobID!")
+        return
+    end
+
+
+    -- Reset markers custom to my defaults
+    PocketMeroe.db.profile.markersCustom = default_config
+
+    if not PocketMeroe.db.profile.markersCustom[id] then
+		print("PocketMeroe.lua: Database error!")
+        PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
+    end
+
+end
 
 function main.OnInit()
 end

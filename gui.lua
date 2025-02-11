@@ -273,36 +273,31 @@ local function GetCursorPos(frame)
 end
 
 local function Tab2LineUpdate(self)
-	local num = self._i
-	if self.id ~= self:GetParent()._id then
-		--print("id mismatch! ", self:GetParent()._id)
-		self.id = self:GetParent()._id
+	local parentID = self:GetParent()._id
+	if self.id ~= parentID then
+		self.id = parentID
 	end
-	--self.edit:SetText(gui.autoMarkNames[num] or "")
-	--self.marks.state = gui.autoMarkState[num] or {8, 7, 6, 5, 4, 3, 2, 1}
+	
+	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks") or { 8, 7, 6, 5, 4, 3, 2, 1 } 
+	if next(self.marks.state) == nil then 
+		self.marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
+	end
 
-	-- restore default marks if UI can't decide
-	if not self.id then self.marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 } end
-	--print ("Update ", self.id)
-	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks")
-	if self.marks.state == {} then self.marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 } end
-	--print("State: ", self.marks.state)
-	for i = 1, #self.marks.list do
-		local mark = self.marks.state[i]
-		if mark and mark ~= "" then
-			self.marks.list[i]:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
-			SetRaidTargetIconTexture(self.marks.list[i], tonumber(mark, 9))
+	for i, list in ipairs(self.marks.list) do
+		local state = self.marks.state[i]
+
+		if state and state ~= "" then
+			list:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+			SetRaidTargetIconTexture(list, tonumber(state, 9))
 		else
-			self.marks.list[i]:SetTexture()
+			list:SetTexture()
 		end
-		if mark == self.marks.picked_mark then
-			self.marks.list[i]:SetAlpha(.7)
-		else
-			self.marks.list[i]:SetAlpha(1)
-		end
-		self.marks.list[i]:SetShown(i <= 8 or self.isExpand)
+
+        list:SetAlpha(state == self.marks.picked_mark and 0.7 or 1)
+        list:SetShown(i <= 8 or self.isExpand)
 	end
 end
+
 local function Tab2MarksOnUpdate(self)
 	if not IsMouseButtonDown(1) then
 		self:SetScript("OnUpdate", nil)
@@ -491,13 +486,6 @@ local BuildTab2MarksBar = function(parent)
 	--marks:SetScript("OnEnter",Tab2MarksListOnEnter)
 	--marks:SetScript("OnLeave",Tab2MarksListOnLeave)
 end
--- local function Tab2MarksListOnEnter(self)
--- 	self:GetParent().Background:Show()
--- end
--- local function Tab2MarksListOnLeave(self)
--- 	self:GetParent().Background:Hide()
--- end
-
 
 function PocketMeroe.ShowMarkScroll(parentTab)
 	if parentTab.scroll then
