@@ -108,32 +108,43 @@ local default_config = {
 
 PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
-local PocketMeroe_OnEvent = function(_,event, ...)
-	if PocketMeroe.marks then
-		if (event == "MODIFIER_STATE_CHANGED") then
-			if PocketMeroe.marks.markersModifierChanged then
-				PocketMeroe.marks.markersModifierChanged()
-			end
-		end
+local PocketMeroe_OnEvent = function(_, event, ...)
+    if PocketMeroe.marks then
+        if event == "MODIFIER_STATE_CHANGED" then
+            if PocketMeroe.marks.markersModifierChanged then
+                PocketMeroe.marks.markersModifierChanged()
+            end
+        end
 
-		-- Hook tooltip
-		if not PocketMeroe.marks.tooltipHooked then
-			PocketMeroe.marks.tooltipHooked = true
-			GameTooltip:HookScript("OnTooltipSetUnit", function(tooltip)
-					if PocketMeroe.marks.tooltipExtend then
-						PocketMeroe.marks.tooltipExtend(tooltip)
-					end
-			end)
-		end
-		-- Extend tooltip
-		if (event == "MODIFIER_STATE_CHANGED") then
-			if (UnitExists("mouseover")) then
-				GameTooltip:SetUnit("mouseover")
-			end
-		end
-	else
-		ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not responding.")
-	end
+        -- Hook tooltip with TooltipDataProcessor if available, otherwise fall back to GameTooltip:HookScript
+        if not PocketMeroe.marks.tooltipHooked then
+            PocketMeroe.marks.tooltipHooked = true
+
+            -- Define a function to extend the tooltip
+            local function OnTooltipSetUnit(tooltip)
+                if PocketMeroe.marks.tooltipExtend then
+                    PocketMeroe.marks.tooltipExtend(tooltip)
+                end
+            end
+
+            -- Use TooltipDataProcessor if available (modern method)
+            if TooltipDataProcessor then
+                TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
+            else
+                -- Fall back to the legacy GameTooltip method
+                GameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
+            end
+        end
+
+        -- Extend tooltip if "MODIFIER_STATE_CHANGED" event occurs and mouseover exists
+        if event == "MODIFIER_STATE_CHANGED" then
+            if UnitExists("mouseover") then
+                GameTooltip:SetUnit("mouseover")
+            end
+        end
+    else
+        ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not responding.")
+    end
 end
 
 local PocketMeroe_OnLoad = function (_, event, arg1)

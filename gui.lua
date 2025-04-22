@@ -24,6 +24,7 @@ local raidIcons = {
 
 local profileCallback = function()
 	-- executes whenever profile settings are changed
+	-- ???
 end
 
 local SetModifier = function(_, var, value, key)
@@ -42,7 +43,7 @@ local BuildModifierOptions = function(var)
 
 	for _, modifier in ipairs(modifiers) do
 		table.insert(result, {
-			label = modifier:gsub("^%l", string.upper), -- Capitalize the first letter
+			label = modifier:gsub("^%l", string.upper), -- first letter
 			value = modifier,
 			onclick = function()
 				SetModifier(nil, var, true, modifier)
@@ -217,7 +218,7 @@ local buildTab1Options = function(parentTab, tabFrameHeight)
 end
 
 local buildTab2Options = function(parentTab, tabFrameHeight)
-	local BuildRaidOptions = function(var, frame)
+	local raidDropdown = function(var, frame)
 		local raids = {
 			{ label = "All",                 value = "none" },
 			{ label = "Zul'Gurub",           value = "ZG" },
@@ -243,22 +244,25 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 	end
 
 	local automarksOptionsTable = {
-		always_boxfirst = false,
+		always_boxfirst = true,
 		{
 			type = "select",
 			get = function()
 				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
 			end,
-			values = function() return BuildRaidOptions(Config.var, parentTab.scroll) end,
+			values = function() return raidDropdown(Config.var, parentTab.scroll) end,
 			name = "Raid:",
 			--desc = "",
 		},
+
 	}
 
 	parentTab.scroll:UpdateList()
-	DF:BuildMenu(parentTab, automarksOptionsTable, 10, -100, tabFrameHeight, false, options_text_template,
+	
+	local dropdown = DF:BuildMenu(gui.automarks.scroll, automarksOptionsTable, 10, 30, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
+	
 end
 
 -- get cursor position relative to a frame
@@ -277,7 +281,7 @@ local function Tab2LineUpdate(self)
 	if self.id ~= parentID then
 		self.id = parentID
 	end
-	
+
 	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks") or { 8, 7, 6, 5, 4, 3, 2, 1 } 
 	if next(self.marks.state) == nil then 
 		self.marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
@@ -299,7 +303,7 @@ local function Tab2LineUpdate(self)
 end
 
 local function Tab2MarksOnUpdate(self)
-	if not IsMouseButtonDown(1) then
+	if not IsMouseButtonDown("LeftButton") then
 		self:SetScript("OnUpdate", nil)
 		self.picked = nil
 		self.picked_mark = nil
@@ -344,11 +348,8 @@ local function Tab2MarksOnUpdate(self)
 		return newTable
 	end
 
-	-- Remove the picked element
 	local tempState = removeElementAtIndex(self.saved_state, self.picked)
-	-- Create newState by inserting the picked element at currCursor
 	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
-
 	--print("newstate: ", DF.strings.tabletostring(newState))
 
 	if newState ~= self.state then
@@ -535,19 +536,11 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 	-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
 	-- data columns & refresh with if (npcData[id].instance[1] == value [+checks]) -- SEARCH? searchBox df_searchbox
 
-
-	--declare a function to create a column within a scroll line
-	--this function will receive the line, the line index within the scrollbox and the column index within the line
-
-
 	local options = {
 		width = 510,
 		height = 190,
-		--amount of horizontal lines
 		line_amount = 9,
-		--amount of columns per line
 		columns_per_line = 3,
-		--height of each line
 		line_height = 20,
 		auto_amount = false,
 		no_scroll = false,
@@ -624,7 +617,7 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 
 
 	PocketMeroe.gui.data = PocketMeroe.gui.getData()
-	parentTab.scroll = DF:CreateGridScrollBox(parentTab, "$parentScroll", refreshGrid, PocketMeroe.gui.data,
+	parentTab.scroll = DF:CreateGridScrollBox(parentTab, "$parent.content", refreshGrid, PocketMeroe.gui.data,
 		createColumnFrame, options)
 	DF:ReskinSlider(parentTab.scroll)
 	parentTab.scroll:SetPoint("bottom", parentTab, "bottom", -10, 25)
@@ -637,29 +630,34 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 	end
 
 	function gui.automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
-		if (gui.automarks.scroll and (not gui.automarks.scroll:IsShown())) then
+		if (gui.automarks.scroll and not gui.automarks.scroll:IsShown()) then
 			return
 		end
-
-		-- local npcData = PocketMeroe.db.profile.markersCustom
-		-- for id, _ in pairs (npcData) do
-		-- 	local raidIcons, priority, zone, sortCategory, name = unpack(npcData[id])
-		-- 	-- if id and npcData[id] then print(id .. " " .. tostring(npcData[id][3])) end
-		-- 	-- i really sure hope the same mob IDs dont appear in multiple instances.
-		-- 	-- i think we're lucky enough that raid instances only contain monsters unique to that instance
-		-- 	if (zone == value or value =="none" or not value) then
-		-- 		if not name then name = id end
-		-- 		--table.insert(data, {name, zone})
-		-- 	end
-		-- end
-		-- --automarks.scroll:SetData(data)
+	
+		local npcData = PocketMeroe.db.profile.markersCustom
+		local filteredData = {}
+	
+		for id, entry in pairs(npcData) do
+			local customMarks, priority, zone, monsterType, name = unpack(entry)
+	
+			-- Filter by selected raid (zone)
+			if (zone == value or value == "none" or not value) then
+				table.insert(filteredData, { text = tostring(name) })
+				table.insert(filteredData, { text = tostring(id) })
+				table.insert(filteredData, { text = tostring(zone) .. " " .. tostring(monsterType) })
+			end
+		end
+	
+		-- Update the data source
+		PocketMeroe.gui.data = filteredData
+	
+		-- Push new data into the scroll box
+		gui.automarks.scroll:SetData(PocketMeroe.gui.data)
 		gui.automarks.scroll:Refresh()
 	end
 end
 
 gui.ShowMenu = function()
-	-- toggle scrollConfiguration menu
-
 	if not PocketMeroeDB then
 		print("PocketMeroe.gui: PocketMeroeDB not loaded! Stopping!")
 		return
@@ -673,14 +671,11 @@ gui.ShowMenu = function()
 		return
 	end
 
-
-	--build the options window
 	local optionsFrame = DF:CreateSimplePanel("UIParent", 560, 330, "pocketMeroe Config", "meroe")
 
 	buildStatusAuthorBar(optionsFrame)
-	local tabContainer = buildOptionsFrameTabs(optionsFrame) -- build the tabs
+	local tabContainer = buildOptionsFrameTabs(optionsFrame)
 
-	--make the tab button's text be aligned to left and fit the button's area
 	for index, frame in ipairs(tabContainer.AllFrames) do
 		frame.titleText.fontsize = 18
 		local tabButton = tabContainer.AllButtons[index]
@@ -724,12 +719,10 @@ gui.ShowMenu = function()
 		end
 	end
 
-	-- get each tab's frame and create a local variable to cache it
 	local general = tabContainer.AllFrames[1]
 	local automarks = tabContainer.AllFrames[2]
 	local tabFrameHeight = general:GetHeight()
 
-	-- immediately add this to "namespace"
 	gui.general = general
 	gui.automarks = automarks
 
