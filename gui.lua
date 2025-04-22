@@ -160,7 +160,7 @@ local buildStatusAuthorBar = function(parent)
 	return statusBar, authorInfo
 end
 
-local buildTab1Options = function(parentTab, tabFrameHeight)
+local generalTab = function(parentTab, tabFrameHeight)
 	local generalOptionsTable = {
 		always_boxfirst = true,
 		{
@@ -217,7 +217,7 @@ local buildTab1Options = function(parentTab, tabFrameHeight)
 		profileCallback)
 end
 
-local buildTab2Options = function(parentTab, tabFrameHeight)
+local automarksTab = function(parentTab, tabFrameHeight)
 	local raidDropdown = function(var, frame)
 		local raids = {
 			{ label = "All",                 value = "none" },
@@ -357,7 +357,7 @@ local function Tab2MarksOnUpdate(self)
 		self:GetParent():Update()
 	end
 end
-local function Tab2MarksOnMouseDown(self, button)
+local function automarksCharmsOnMouseDown(self, button)
 	self.id = self:GetParent().id
 	--print("Mousedown: ", self.id)
 	self.state = PocketMeroe.ProfileGet(self.id, "customMarks")
@@ -440,7 +440,7 @@ local function Tab2MarksOnMouseDown(self, button)
 	end
 end
 
-local BuildTab2MarksBar = function(parent)
+local automarksCharms = function(parent)
 	local line = CreateFrame("Frame", nil, parent)
 	do
 		line.id = parent._id
@@ -466,14 +466,14 @@ local BuildTab2MarksBar = function(parent)
 			SetRaidTargetIconTexture(marks.list[i], i)
 			marks.list[i]:SetShown(i <= 8)
 		end
-		marks.list.refresh = marks:CreateTexture(nil, "ARTWORK")
-		marks.list.refresh:SetPoint("RIGHT", 0, 0)
-		marks.list.refresh:SetSize(18, 18)
-		marks.list.refresh:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-		marks.list.refresh:SetTexCoord(0.125, 0.1875, 0.5, 0.625)
-		marks.list.refresh:SetVertexColor(1, 1, 1, 0.7)
+		marks.list.reset = marks:CreateTexture(nil, "ARTWORK")
+		marks.list.reset:SetPoint("RIGHT", 0, 0)
+		marks.list.reset:SetSize(18, 18)
+		marks.list.reset:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
+		marks.list.reset:SetTexCoord(0.125, 0.1875, 0.5, 0.625)
+		marks.list.reset:SetVertexColor(1, 1, 1, 0.7)
 
-		marks:SetScript("OnMouseDown", Tab2MarksOnMouseDown)
+		marks:SetScript("OnMouseDown", automarksCharmsOnMouseDown)
 
 		-- default marks
 		marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
@@ -488,7 +488,7 @@ local BuildTab2MarksBar = function(parent)
 	--marks:SetScript("OnLeave",Tab2MarksListOnLeave)
 end
 
-function PocketMeroe.ShowMarkScroll(parentTab)
+function PocketMeroe.showContent(parentTab)
 	if parentTab.scroll then
 		parentTab.scroll:Show()
 		return
@@ -626,7 +626,7 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 	for i, line in ipairs(parentTab.scroll:GetFrames()) do
 		line._id = line.optionFrames[2].text:GetText()
 		--print("line_id", line._id)
-		markLines[i] = BuildTab2MarksBar(line)
+		markLines[i] = automarksCharms(line)
 	end
 
 	function gui.automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
@@ -727,12 +727,12 @@ gui.ShowMenu = function()
 	gui.automarks = automarks
 
 	---  [meroe.general]  ---
-	buildTab1Options(general, tabFrameHeight)
+	generalTab(general, tabFrameHeight)
 
 
 	--- [meroe.automarks] ---
-	PocketMeroe.ShowMarkScroll(automarks)
-	buildTab2Options(automarks, tabFrameHeight)
+	PocketMeroe.showContent(automarks)
+	automarksTab(automarks, tabFrameHeight)
 
 	---
 	meroe:Hide();
