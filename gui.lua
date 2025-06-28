@@ -267,6 +267,7 @@ end
 
 -- get cursor position relative to a frame
 local function GetCursorPos(frame)
+	if not frame then return end
 	local x_f, y_f = GetCursorPosition()
 	local s = frame:GetEffectiveScale()
 	x_f, y_f = x_f / s, y_f / s
@@ -365,7 +366,7 @@ local function automarksCharmsOnMouseDown(self, button)
 	self.picked_mark = nil
 	if button == "LeftButton" then
 		--print("LMB")
-		local x, y = GetCursorPos(self.list.refresh)
+		local x, y = GetCursorPos(self.list.reset)
 		--print("x", x, "y", y)
 		if x >= 0 and x <= 19 then
 			self.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
@@ -401,7 +402,9 @@ local function automarksCharmsOnMouseDown(self, button)
 		end
 	elseif button == "RightButton" then
 		--print("RMB")
-		local x, y = GetCursorPos(self.list.refresh)
+		local x, y = GetCursorPos(self.list.reset)
+		--print("x", x, "y", y)
+
 		if x >= 0 and x <= 19 then
 			--self:GetParent().isExpand = not self:GetParent().isExpand
 			self:GetParent():Update()
@@ -412,6 +415,8 @@ local function automarksCharmsOnMouseDown(self, button)
 		for i = 1, #self.list do
 			if self.list[i]:IsShown() then
 				local x, y = GetCursorPos(self.list[i])
+				--print("x", x, "y", y)
+
 				if x >= 0 and x <= 19 then
 					--local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
 					local function removeElementAtIndex(t, i)
