@@ -11,7 +11,7 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
 local _, PocketMeroe = ...
-local version = "v0.0.8"
+local version = "v0.0.9"
 local config = {};
 
 local main = {}
@@ -38,69 +38,7 @@ local default_config = {
 			ctrl = false,
 			shift = false,
 		},
-		markersCustom = { -- [mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
-			[1706]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Prisoner"},
-			[1707]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Captive"},
-			[1708]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Defias Inmate"},
-			[3501]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Horde Guard"},
-			[4624]  = {{8,7,6,5,4,3,2,1},9,"none", "TEST", "Booty Bay Bruiser"},
-			[14750] = {{8},1,"ZG", "Trash", "Gurubashi Bat Rider"},
-			[14883] = {{8},1,"ZG", "Trash", "Voodoo Slave"},
-			[11830] = {{8},1,"ZG", "Trash", "Hakkari Priest"},
-			[11353] = {{8},1,"ZG", "Trash", "Gurubashi Blood Drinker"},
-			[11671] = {{8},1,"MC", "Trash", "Core Hound"},
-			[12076] = {{8},1,"MC", "Trash", "Lava Elemental"},
-			[12100] = {{8},1,"MC", "Trash", "Lava Reaver"},
-			[11659] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Destroyer"},
-			[11658] = {{8,7,6,5,4,3,2,1},1,"MC", "Trash", "Molten Giant"},
-			[12118] = {{5},1,"MC", "Boss", "Lucifron"},
-			[12119] = {{8,7},1,"MC", "Ads", "Flamewaker Protector"},
-			[11982] = {{8},1,"MC", "Boss", "Magmadar"},
-			[12099] = {{8},1,"MC", "Boss", "Garr"},
-			[12056] = {{8},1,"MC", "Trash", "Firesworn"},
-			[12264] = {{8},1,"MC", "Boss", "Baron Geddon"},
-			[11988] = {{8},1,"MC", "Boss", "Shazzrah"},
-			[11672] = {{8},1,"MC", "Trash", "Core Rager"},
-			[11662] = {{8},1,"MC", "Trash", "Flamewaker Priest"},
-			[11663] = {{8},1,"MC", "Trash", "Flamewaker Healer"},
-			[12468] = {{8,7,6,5,4,3,2,1},2,"BWL", "Trash", "Death Talon Hatcher"},
-			[12458] = {{1, 2, 3},1,"BWL", "Trash", "Blackwing Taskmaster"},
-			[12459] = {{8},1,"BWL", "Trash", "Blackwing Warlock"},
-			[12457] = {{8},1,"BWL", "Trash", "Blackwing Spellbinder"},
-			[12467] = {{1},1,"BWL", "Trash", "Death Talon Captain"},
-			[12463] = {{8, 7},1,"BWL", "Trash", "Death Talon Flamescale"},
-			[12464] = {{6, 5},1,"BWL", "Trash", "Death Talon Seether"},
-			[12465] = {{4, 3},1,"BWL", "Trash", "Death Talon Wyrmkin"},
-			[12420] = {{8,7,6,5,4,3,2,1},1,"BWL", "Ads", "Blackwing Mage"},
-			[15391] = {{8,7,6,5,4,3,2,1},1,"AQ20", "Ads", "Buru Egg"},
-			[15392] = {{1},1,"AQ20", "Ads", "Captian Qeez"},
-			[15389] = {{2},1,"AQ20", "Ads", "Captian Tuubid"},
-			[15390] = {{3},1,"AQ20", "Ads", "Captian Drenn"},
-			[15386] = {{4},1,"AQ20", "Ads", "Captian Xurrem"},
-			[15388] = {{5},1,"AQ20", "Ads", "Major Yeggeth"},
-			[15385] = {{6},1,"AQ20", "Ads", "Major Pakkon"},
-			[15341] = {{7},1,"AQ20", "Ads", "Colonel Zerran"},
-			[15514] = {{8},1,"AQ20", "Boss", "General Rajaxx"},
-			[15264] = {{8,7,6,5},1,"AQ40", "Trash", "Anubisath Sentinel"},
-			[15246] = {{8,7},1,"AQ40", "Trash", "Qiraji Mindslayer"},
-			[15247] = {{8,7},1,"AQ40", "Trash", "Qiraji Brainwasher"},
-			[15312] = {{8,7},1,"AQ40", "Trash", "Obsidian Nullifier"},
-			[15262] = {{8,7},1,"AQ40", "Trash", "Obsidian Eradicator"},
-			[15233] = {{8,7,6,5,4,3,2,1},1,"AQ40", "Trash", "Vekniss Guardian"},
-			[15240] = {{8,7,6,5},1,"AQ40", "Trash", "Vekniss Hive Crawler"},
-			[15230] = {{8,7,6},1,"AQ40", "Trash", "Vekniss Warrior"},
-			[15252] = {{2,1},1,"AQ40", "Trash", "Qiraji Champion"},
-			[15249] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Lasher"},
-			[15250] = {{6,5,4,3},1,"AQ40", "Trash", "Qiraji Slayer"},
-			[15981] = {{8,7,6,5,4},1,"NAXX", "Trash", "Naxxramas Acolyte"},
-			[16506] = {{4,3,2,1},1,"NAXX", "Trash", "Naxxramas Worshipper"},
-			[15974] = {{7,6,5,4,3,2,1},1,"NAXX", "Trash", "Dread Creeper"},
-			[16452] = {{8,7},1,"NAXX", "Trash", "Necro Knight Guardian"},  --holy shit these mobs hit hard!
-			[16017] = {{8,7,6,5},1,"NAXX", "Trash", "Patchwork Golem"}, --these cleave! omg! chain cleave! 360!
-			[16021] = {{8,1},1,"NAXX", "Trash", "Living Monstrosity"},
-			[16020] = {{7,6,5,4,3,2},1,"NAXX", "Trash", "Mad Scientist"},
-			[16447] = {{8,7,6,5},3,"NAXX", "Trash", "Plagued Ghoul"},
-		}
+		markersCustom = PocketMeroeData
 		-- "focus", "focus2", "primary", "secondary", "sheep", "banish", "shackle", "fear",
 		-- "rt8", "rt7", "rt6", "rt5", "rt4", "rt3", "rt2", "rt1"
 	},
@@ -109,43 +47,40 @@ local default_config = {
 PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
 
 local PocketMeroe_OnEvent = function(_, event, ...)
-    if PocketMeroe.marks then
-        if event == "MODIFIER_STATE_CHANGED" then
-            if PocketMeroe.marks.markersModifierChanged then
-                PocketMeroe.marks.markersModifierChanged()
-            end
-        end
-
-        -- Hook tooltip with TooltipDataProcessor if available, otherwise fall back to GameTooltip:HookScript
-        if not PocketMeroe.marks.tooltipHooked then
-            PocketMeroe.marks.tooltipHooked = true
-
-            -- Define a function to extend the tooltip
-            local function OnTooltipSetUnit(tooltip)
-                if PocketMeroe.marks.tooltipExtend then
-                    PocketMeroe.marks.tooltipExtend(tooltip)
-                end
-            end
-
-            -- Use TooltipDataProcessor if available (modern method)
-            if TooltipDataProcessor then
-                TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
-            else
-                -- Fall back to the legacy GameTooltip method
-                GameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
-            end
-        end
-
-        -- Extend tooltip if "MODIFIER_STATE_CHANGED" event occurs and mouseover exists
-        if event == "MODIFIER_STATE_CHANGED" then
-            if UnitExists("mouseover") then
-                GameTooltip:SetUnit("mouseover")
-            end
-        end
-    else
+    local marks = PocketMeroe.marks
+    if not marks then
         ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not responding.")
+        return
+    end
+
+    if event == "MODIFIER_STATE_CHANGED" then
+        if marks.markersModifierChanged then
+            marks.markersModifierChanged()
+        end
+
+        if UnitExists("mouseover") then
+            GameTooltip:SetUnit("mouseover")
+        end
+    end
+
+    -- Hook tooltip only once
+    if not marks.tooltipHooked then
+        marks.tooltipHooked = true
+
+        local function OnTooltipSetUnit(tooltip)
+            if marks.tooltipExtend then
+                marks:tooltipExtend(tooltip)
+            end
+        end
+
+        if TooltipDataProcessor then
+            TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
+        else
+            GameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
+        end
     end
 end
+
 
 local PocketMeroe_OnLoad = function (_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "pocketMeroe" then
@@ -182,8 +117,8 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
         eventframe:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
         eventframe:SetScript("OnEvent", PocketMeroe_OnEvent)
 		if PocketMeroe and PocketMeroe.marks then
-			PocketMeroe.marks.InitTooltips()
-			PocketMeroe.marks.InitMarking()
+			PocketMeroe.marks.InitTooltipHooks()
+			PocketMeroe.marks.InitMarkingSettings()
 		else
 			ChatFrame1:AddMessage("PocketMeroe.main: PocketMeroe.marks is not initialized.")
 		end
