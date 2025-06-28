@@ -1,8 +1,6 @@
 ------ Auto-Marking ----------------------------------------------------------------------------------------------------
 -- thank you https://wago.io/p/Forsaken for good auto-marking code
 ------------------------------------------------------------------------------------------------------------------------
-local DF = _G["DetailsFramework"]
-
 ---@class Marks
 local Marks = {}
 Marks.__index = Marks

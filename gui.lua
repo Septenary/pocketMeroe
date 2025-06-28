@@ -445,7 +445,7 @@ local BuildTab2MarksBar = function(parent)
 	do
 		line.id = parent._id
 		line:SetPoint("LEFT", 5, 0)
-		line:SetPoint("RIGHT", -130, 0)
+		line:SetPoint("RIGHT", -145, 0)
 		line:SetHeight(25)
 	end
 

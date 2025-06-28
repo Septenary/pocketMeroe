@@ -44,7 +44,9 @@ local default_config = {
 	},
 };
 
+
 PocketMeroe = DF:CreateAddOn("main", "PocketMeroeDB", default_config)
+
 
 local PocketMeroe_OnEvent = function(_, event, ...)
     local marks = PocketMeroe.marks
@@ -126,6 +128,18 @@ local PocketMeroe_OnLoad = function (_, event, arg1)
 end
 --[mobID] = {user-defined marks},priority,instanceShortcode,monster type, unitName
 
+PocketMeroe.ResetProfileToDefaults = function()
+	-- Deep copy defaults into profile
+	PocketMeroe.db.profile = DF.table.copy({}, default_config.profile)
+
+	-- Optionally refresh UI
+	if meroe and meroe:IsShown() then
+		meroe:Hide()
+		gui.ShowMenu()
+	end
+end
+
+
 PocketMeroe.ProfileSet = function (id, var, arg)
 	if not PocketMeroeDB then
 		print("PocketMeroe.lua: Database not loaded! Stopping!")
@@ -134,7 +148,7 @@ PocketMeroe.ProfileSet = function (id, var, arg)
 
 	id = tonumber(id)
     if not id or id <= 0 then
-        print("PocketMeroe.lua: mobID expects a mobID!")
+        error("PocketMeroe.lua: mobID expects a mobID!",2)
         return
     end
     if not arg then
@@ -195,7 +209,7 @@ PocketMeroe.ProfileGet = function (id, var)
 
 	id = tonumber(id)
     if not id or id <= 0 then
-        print("PocketMeroe.lua: mobID expects a mobID!")
+        error("PocketMeroe.lua: mobID expects a mobID!")
         return
     end
 
@@ -209,6 +223,7 @@ PocketMeroe.ProfileGet = function (id, var)
 		print("PocketMeroe.lua: Database error!")
         PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
     end
+
 
 	local functionMapping = {
 		customMarks = function()
@@ -245,7 +260,7 @@ PocketMeroe.ProfileClear = function (id, var) -- right now it just nukes your pr
 
 	id = tonumber(id)
     if not id or id <= 0 then
-        print("PocketMeroe.lua: mobID expects a mobID!")
+        error("PocketMeroe.lua: mobID expects a mobID!")
         return
     end
 
