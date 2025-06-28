@@ -545,9 +545,9 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 		no_scroll = false,
 		no_backdrop = false,
 	}
-	local data = {}
-
+	
 	function PocketMeroe.gui.getData()
+		local data = {}
 		if not PocketMeroeDB then
 			print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
 			return
@@ -558,94 +558,127 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 			--[mobID] = customMarks, priority, instanceShortcode,monsterType,unitName
 			local customMarks, priority, instanceShortcode, monsterType, unitName = unpack(value)
 
-			table.insert(data, { text = tostring(unitName) })
+			table.insert(data, { text = tostring(unitName) .. " "})
 			table.insert(data, { text = tostring(id) })
-			table.insert(data, { text = tostring(instanceShortcode) .. " " .. tostring(monsterType) })
+			table.insert(data, { text = tostring(monsterType) })
 		end
 		return data
 	end
 
 	local createColumnFrame = function(line, lineIndex, columnIndex)
-		if line then
-			line._i = lineIndex
-		end
+		if not line.editbox then line.editbox = {} end
+		if line then line._i = lineIndex end
+	
 		if columnIndex == 1 then
-			local fs = CreateFrame("frame", "$parentG" .. lineIndex .. columnIndex, line)
+			local fs = CreateFrame("Frame", "$parentG" .. lineIndex .. columnIndex, line)
 			fs:SetSize(175, 20)
 			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 			fs.text:SetPoint("LEFT", fs, "LEFT", 0, 0)
 			fs.text:SetText("Option " .. lineIndex .. columnIndex)
-
+	
 			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
 			highlightTexture:SetAllPoints()
 			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
+	
 			DF:ApplyStandardBackdrop(fs)
-			
 			fs:EnableMouse(true)
-    
+	
 			fs:SetScript("OnMouseDown", function(self, button)
 				if button == "LeftButton" and IsShiftKeyDown() then
 					local linkText = self.text:GetText()
 					if ChatEdit_GetActiveWindow() then
-						-- Insert text into the active chat edit box
 						ChatEdit_InsertLink(linkText)
 					else
-						-- Open chat edit box and insert text
 						ChatFrame_OpenChat(linkText)
 					end
 				end
 			end)
-			
+	
+			line.editbox[columnIndex] = fs
 			return fs
-		end
-		if columnIndex == 2 then
-			local fs = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+	
+		elseif columnIndex == 2 then
+			local fs = CreateFrame("Button", "$parentG" .. lineIndex .. columnIndex, line)
 			fs:SetSize(135, 20)
 			fs:SetPoint("LEFT", line, "LEFT", 0, 0)
 			fs.text = fs:CreateFontString(nil, "BACKGROUND", "GameFontNormal")
 			fs.text:SetPoint("CENTER", fs, "CENTER", 0, 0)
 			fs.text:SetText("Option " .. lineIndex .. columnIndex)
-			fs:SetAlpha(0)
-			fs.text:SetAlpha(0)
-
+			-- Remove or comment out these if you want it visible:
+			-- fs:SetAlpha(0)
+			-- fs.text:SetAlpha(0)
+	
 			DF:ApplyStandardBackdrop(fs)
+			line.editbox[columnIndex] = fs
 			return fs
-		end
-		if columnIndex == 3 then
-			local fs = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
-			fs:SetSize(12, 20)
-			fs:SetPoint("RIGHT", line, "RIGHT", 0, 0)
-			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-			fs.text:SetPoint("RIGHT", fs, "RIGHT", 0, 0)
-			fs.text:SetText("Option " .. lineIndex .. columnIndex)
+	
+		elseif columnIndex == 3 then
+			local btn = CreateFrame("Button", "$parentEdit" .. lineIndex .. columnIndex, line)
+			btn:SetSize(175, 20)
+			btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			btn.text:SetPoint("LEFT", btn, "LEFT", 0, 0)
+			DF:ApplyStandardBackdrop(btn)
+	
+			local editBox = CreateFrame("EditBox", nil, btn)
+			editBox:SetSize(175, 20)
+			editBox:SetPoint("LEFT", btn, "LEFT", 0, 0)
+			editBox:SetFontObject("ChatFontNormal")
+			editBox:SetAutoFocus(false)
+			editBox:Hide()
+			btn.editBox = editBox
+	
+			local function StartEditing()
+				btn.text:Hide()
+				editBox:Show()
+				editBox:SetText(btn.text:GetText())
+				editBox:SetFocus()
+				editBox:HighlightText()
+			end
+	
+			local function EndEditing(save)
+				if save then
+					local newText = editBox:GetText()
+					btn.text:SetText(newText)
+					-- Save data
+					--print("saved monster info: " .. newText .. line._id)
+					PocketMeroe.ProfileSet(line._id, "monsterType", newText)
 
-			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
-			highlightTexture:SetAllPoints()
-			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
-
-			DF:ApplyStandardBackdrop(fs)
-
-			fs:EnableMouse(true)
-    
-			fs:SetScript("OnMouseDown", function(self, button)
-				if button == "LeftButton" and IsShiftKeyDown() then
-					local linkText = self.text:GetText()
-					if ChatEdit_GetActiveWindow() then
-						-- Insert text into the active chat edit box
-						ChatEdit_InsertLink(linkText)
+				end
+				editBox:ClearFocus()
+				editBox:Hide()
+				btn.text:Show()
+			end
+	
+			btn:SetScript("OnMouseDown", function(self, button)
+				if button == "LeftButton" then
+					if IsShiftKeyDown() then
+						local text = btn.text:GetText()
+						if ChatEdit_GetActiveWindow() then
+							ChatEdit_InsertLink(text)
+						else
+							ChatFrame_OpenChat(text)
+						end
 					else
-						-- Open chat edit box and insert text
-						ChatFrame_OpenChat(linkText)
+						StartEditing()
 					end
 				end
 			end)
-
-			return fs
+	
+			editBox:SetScript("OnEnterPressed", function()
+				EndEditing(true)
+			end)
+			editBox:SetScript("OnEscapePressed", function()
+				EndEditing(false)
+			end)
+			editBox:SetScript("OnEditFocusLost", function()
+				EndEditing(false)
+			end)
+	
+			line.editbox[columnIndex] = btn
+			return btn
 		end
 	end
-
-
+	
 	PocketMeroe.gui.data = PocketMeroe.gui.getData()
 	parentTab.scroll = DF:CreateGridScrollBox(parentTab, "$parent.content", refreshGrid, PocketMeroe.gui.data,
 		createColumnFrame, options)
@@ -674,7 +707,7 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 			if (zone == value or value == "none" or not value) then
 				table.insert(filteredData, { text = tostring(name) })
 				table.insert(filteredData, { text = tostring(id) })
-				table.insert(filteredData, { text = tostring(zone) .. " " .. tostring(monsterType) })
+				table.insert(filteredData, { text = tostring(monsterType) })
 			end
 		end
 	
