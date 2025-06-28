@@ -114,8 +114,7 @@ local buildOptionsFrameTabs = function(parent, tabs)
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(parent, "pocketMeroe", "$parent.tc", tabList, optionsTable,
-		hookList)
+	local tabContainer = DF:CreateTabContainer(parent, "pocketMeroe", "$parent.tc", tabList, optionsTable, hookList)
 	tabContainer:SetPoint("center", parent, "center", 0, 0)
 	tabContainer:SetSize(parent:GetSize())
 	tabContainer:Show()
@@ -145,7 +144,7 @@ local buildStatusAuthorBar = function(parent)
 	DF:ApplyStandardBackdrop(statusBar)
 
 	local authorInfo = DF:CreateLabel(statusBar, "|cFFFFFFFFmeroe|r |cFFFFFFFF<Serenity>|r - Mankrik")
-	authorInfo:SetPoint("left", statusBar, "left", 6, 0)
+	authorInfo:SetPoint("LEFT", statusBar, "left", 6, 0)
 	authorInfo:SetAlpha(.6)
 	authorInfo.textcolor = "silver"
 
@@ -582,36 +581,67 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
 			DF:ApplyStandardBackdrop(fs)
-
+			
+			fs:EnableMouse(true)
+    
+			fs:SetScript("OnMouseDown", function(self, button)
+				if button == "LeftButton" and IsShiftKeyDown() then
+					local linkText = self.text:GetText()
+					if ChatEdit_GetActiveWindow() then
+						-- Insert text into the active chat edit box
+						ChatEdit_InsertLink(linkText)
+					else
+						-- Open chat edit box and insert text
+						ChatFrame_OpenChat(linkText)
+					end
+				end
+			end)
+			
 			return fs
 		end
 		if columnIndex == 2 then
-			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
-			optionButton:SetSize(135, 20)
-			optionButton:SetPoint("LEFT", line, "LEFT", 0, 0)
-			optionButton.text = optionButton:CreateFontString(nil, "BACKGROUND", "GameFontNormal")
-			optionButton.text:SetPoint("CENTER", optionButton, "CENTER", 0, 0)
-			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
-			optionButton:SetAlpha(0)
-			optionButton.text:SetAlpha(0)
+			local fs = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			fs:SetSize(135, 20)
+			fs:SetPoint("LEFT", line, "LEFT", 0, 0)
+			fs.text = fs:CreateFontString(nil, "BACKGROUND", "GameFontNormal")
+			fs.text:SetPoint("CENTER", fs, "CENTER", 0, 0)
+			fs.text:SetText("Option " .. lineIndex .. columnIndex)
+			fs:SetAlpha(0)
+			fs.text:SetAlpha(0)
 
-			DF:ApplyStandardBackdrop(optionButton)
-			return optionButton
+			DF:ApplyStandardBackdrop(fs)
+			return fs
 		end
 		if columnIndex == 3 then
-			local optionButton = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
-			optionButton:SetSize(12, 20)
-			optionButton:SetPoint("RIGHT", line, "RIGHT", 0, 0)
-			optionButton.text = optionButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-			optionButton.text:SetPoint("RIGHT", optionButton, "RIGHT", 0, 0)
-			optionButton.text:SetText("Option " .. lineIndex .. columnIndex)
+			local fs = CreateFrame("button", "$parentG" .. lineIndex .. columnIndex, line)
+			fs:SetSize(12, 20)
+			fs:SetPoint("RIGHT", line, "RIGHT", 0, 0)
+			fs.text = fs:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			fs.text:SetPoint("RIGHT", fs, "RIGHT", 0, 0)
+			fs.text:SetText("Option " .. lineIndex .. columnIndex)
 
-			local highlightTexture = optionButton:CreateTexture(nil, "HIGHLIGHT")
+			local highlightTexture = fs:CreateTexture(nil, "HIGHLIGHT")
 			highlightTexture:SetAllPoints()
 			highlightTexture:SetColorTexture(1, 1, 1, 0.2)
 
-			DF:ApplyStandardBackdrop(optionButton)
-			return optionButton
+			DF:ApplyStandardBackdrop(fs)
+
+			fs:EnableMouse(true)
+    
+			fs:SetScript("OnMouseDown", function(self, button)
+				if button == "LeftButton" and IsShiftKeyDown() then
+					local linkText = self.text:GetText()
+					if ChatEdit_GetActiveWindow() then
+						-- Insert text into the active chat edit box
+						ChatEdit_InsertLink(linkText)
+					else
+						-- Open chat edit box and insert text
+						ChatFrame_OpenChat(linkText)
+					end
+				end
+			end)
+
+			return fs
 		end
 	end
 
