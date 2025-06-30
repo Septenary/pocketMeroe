@@ -11,17 +11,6 @@ local options_slider_template = DF:GetTemplate("slider", "OPTIONS_SLIDER_TEMPLAT
 local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
 local options_button_template_selected = DF.table.copy({}, DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
 
-local raidIcons = {
-	[1] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1", -- Star
-	[2] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_2", -- Circle
-	[3] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_3", -- Diamond
-	[4] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_4", -- Triangle
-	[5] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_5", -- Moon
-	[6] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_6", -- Square
-	[7] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_7", -- Cross
-	[8] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", -- Skull
-}
-
 local profileCallback = function()
 	-- executes whenever profile settings are changed
 	-- ???
@@ -264,7 +253,6 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 	
 end
 
--- get cursor position relative to a frame
 local function GetCursorPos(frame)
 	local x_f, y_f = GetCursorPosition()
 	local s = frame:GetEffectiveScale()
@@ -281,9 +269,12 @@ local function Tab2LineUpdate(self)
 		self.id = parentID
 	end
 
-	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks") or { 8, 7, 6, 5, 4, 3, 2, 1 } 
-	if next(self.marks.state) == nil then 
+	self.marks.state = PocketMeroe.ProfileGet(self.id, "customMarks")
+
+	-- Reset if empty or nil
+	if not self.marks.state or #self.marks.state == 0 then
 		self.marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
+		PocketMeroe.ProfileSet(self.id, "customMarks", self.marks.state)
 	end
 
 	for i, list in ipairs(self.marks.list) do
@@ -307,6 +298,7 @@ local function Tab2MarksOnUpdate(self)
 		self.picked = nil
 		self.picked_mark = nil
 		self.id = self:GetParent().id
+
 		--print("id: ", self.id)
 		--gui.autoMarkState[self:GetParent():GetParent()._i] = self.state
 
@@ -349,6 +341,7 @@ local function Tab2MarksOnUpdate(self)
 
 	local tempState = removeElementAtIndex(self.saved_state, self.picked)
 	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
+
 	--print("newstate: ", DF.strings.tabletostring(newState))
 
 	if newState ~= self.state then
@@ -356,11 +349,16 @@ local function Tab2MarksOnUpdate(self)
 		self:GetParent():Update()
 	end
 end
+
 local function Tab2MarksOnMouseDown(self, button)
 	self.id = self:GetParent().id
 	--print("Mousedown: ", self.id)
 	self.state = PocketMeroe.ProfileGet(self.id, "customMarks")
-
+	if not self.state or #self.state == 0 then
+		self.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
+		PocketMeroe.ProfileSet(self.id, "customMarks", self.state)
+	end
+	
 	self.picked_mark = nil
 	if button == "LeftButton" then
 		--print("LMB")
@@ -428,8 +426,9 @@ local function Tab2MarksOnMouseDown(self, button)
 					-- for _, v in ipairs(newState) do
 					-- 	print(v)
 					-- end
+
 					self.state = newState
-					-- print("rmb: ", DF.strings.tabletostring(self.state))
+					--print("rmb: ", DF.strings.tabletostring(self.state))
 					PocketMeroe.ProfileSet(self.id, "customMarks", self.state)
 					self:GetParent():Update()
 					break
@@ -468,8 +467,7 @@ local BuildTab2MarksBar = function(parent)
 		marks.list.refresh = marks:CreateTexture(nil, "ARTWORK")
 		marks.list.refresh:SetPoint("RIGHT", 0, 0)
 		marks.list.refresh:SetSize(18, 18)
-		marks.list.refresh:SetTexture([[Interface\AddOns\MRT\media\DiesalGUIcons16x256x128]])
-		marks.list.refresh:SetTexCoord(0.125, 0.1875, 0.5, 0.625)
+		marks.list.refresh:SetTexture([[Interface\AddOns\pocketMeroe\refresh]])
 		marks.list.refresh:SetVertexColor(1, 1, 1, 0.7)
 
 		marks:SetScript("OnMouseDown", Tab2MarksOnMouseDown)
@@ -487,7 +485,7 @@ local BuildTab2MarksBar = function(parent)
 	--marks:SetScript("OnLeave",Tab2MarksListOnLeave)
 end
 
-function PocketMeroe.ShowMarkScroll(parentTab)
+local function ShowMarkScroll(parentTab)
 	if parentTab.scroll then
 		parentTab.scroll:Show()
 		return
@@ -616,12 +614,12 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 			local btn = CreateFrame("Button", "$parentEdit" .. lineIndex .. columnIndex, line)
 			btn:SetSize(175, 20)
 			btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-			btn.text:SetPoint("LEFT", btn, "LEFT", 0, 0)
+			btn.text:SetPoint("LEFT", btn, "LEFT", 20, 0)
 			DF:ApplyStandardBackdrop(btn)
 	
 			local editBox = CreateFrame("EditBox", nil, btn)
 			editBox:SetSize(175, 20)
-			editBox:SetPoint("LEFT", btn, "LEFT", 0, 0)
+			editBox:SetPoint("LEFT", btn, "LEFT", 20, 0)
 			editBox:SetFontObject("ChatFontNormal")
 			editBox:SetAutoFocus(false)
 			editBox:Hide()
@@ -639,6 +637,7 @@ function PocketMeroe.ShowMarkScroll(parentTab)
 				if save then
 					local newText = editBox:GetText()
 					btn.text:SetText(newText)
+					
 					-- Save data
 					--print("saved monster info: " .. newText .. line._id)
 					PocketMeroe.ProfileSet(line._id, "monsterType", newText)
@@ -794,8 +793,9 @@ gui.ShowMenu = function()
 
 
 	--- [meroe.automarks] ---
-	PocketMeroe.ShowMarkScroll(automarks)
+	ShowMarkScroll(automarks)
 	buildTab2Options(automarks, tabFrameHeight)
+
 
 	---
 	meroe:Hide();

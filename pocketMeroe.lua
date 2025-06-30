@@ -11,7 +11,7 @@ https://www.curseforge.com/wow/addons/method-raid-tools,
 ]]
 ------------------------------------------------------------------------------------------------------------------------
 local _, PocketMeroe = ...
-local version = "v0.0.9"
+local version = "v0.0.10"
 local config = {};
 
 local main = {}
@@ -140,66 +140,70 @@ PocketMeroe.ResetProfileToDefaults = function()
 end
 
 
-PocketMeroe.ProfileSet = function (id, var, arg)
+PocketMeroe.ProfileSet = function(id, var, arg)
 	if not PocketMeroeDB then
-		print("PocketMeroe.lua: Database not loaded! Stopping!")
-		return
+		error("PocketMeroe.lua: Database not loaded!", 2)
 	end
 
 	id = tonumber(id)
-    if not id or id <= 0 then
-        error("PocketMeroe.lua: mobID expects a mobID!",2)
-        return
-    end
-    if not arg then
-        print("PocketMeroe.lua: ProfileSet expects an argument!")
-        return
-    end
+	if not id or id <= 0 then
+		error("PocketMeroe.lua: mobID expects a valid mobID!", 2)
+	end
 
+	if arg == nil then
+		error("PocketMeroe.lua: ProfileSet expects an argument!", 2)
+	end
 
-    -- Ensure markersCustom is properly initialized
-    if not PocketMeroe.db.profile.markersCustom then
-        PocketMeroe.db.profile.markersCustom = {}
-    end
-    if not PocketMeroe.db.profile.markersCustom[id] then
-        PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
-    end
+	-- Ensure markersCustom is initialized and pre-sized with 5 entries
+	local markers = PocketMeroe.db.profile.markersCustom
+	if not markers then
+		markers = {}
+		PocketMeroe.db.profile.markersCustom = markers
+	end
+
+	if type(markers[id]) ~= "table" then
+		markers[id] = {}
+	end
+
+	for i = 1, 5 do
+		if markers[id][i] == nil then
+			markers[id][i] = (i == 1) and {} or nil
+		end
+	end
 
 	local functionMapping = {
-		customMarks = function(table)
-			if not table or (type(table) ~= "table") then
-				print("PocketMeroe.lua: ProfileSet(\"customMarks\") expects a table!")
-				return
+		customMarks = function(arg)
+			if type(arg) ~= "table" then
+				error("PocketMeroe.lua: ProfileSet(\"customMarks\") expects a table!", 2)
 			end
-			PocketMeroe.db.profile.markersCustom[id][1] = arg -- expects an actual table!
-			--print("PocketMeroe.lua: ProfileSet(\"customMarks\") set for "..tostring(id))
+			markers[id][1] = arg
 		end,
-		priority = function()
-			PocketMeroe.db.profile.markersCustom[id][2] = tonumber(arg)
-			--print("PocketMeroe.lua: ProfileSet(\"priority\") set for "..tostring(id))
+
+		priority = function(arg)
+			markers[id][2] = tonumber(arg)
 		end,
-		instanceShortcode = function()
-			PocketMeroe.db.profile.markersCustom[id][3] = arg
-			--print("PocketMeroe.lua: ProfileSet(\"instanceShortcode\") set for"..tostring(id))
+
+		instanceShortcode = function(arg)
+			markers[id][3] = tostring(arg)
 		end,
-		monsterType = function ()
-			PocketMeroe.db.profile.markersCustom[id][4] = arg
-			--print("PocketMeroe.lua: ProfileSet(\"monsterType\") set for"..tostring(id))
+
+		monsterType = function(arg)
+			markers[id][4] = tostring(arg)
 		end,
-		unitName = function ()
-			PocketMeroe.db.profile.markersCustom[id][5] = arg
-			--print("PocketMeroe.lua: ProfileSet(\"unitName\") set for "..tostring(id))
+
+		unitName = function(arg)
+			markers[id][5] = tostring(arg)
 		end,
 	}
 
 	local func = functionMapping[var]
-    if func then
-        func(arg)
-    else
-		print("PocketMeroe.lua: ProfileGet("..tostring(var)..") not found!")
-    end
-
+	if func then
+		func(arg)
+	else
+		error("PocketMeroe.lua: ProfileSet(\"" .. tostring(var) .. "\") is not a recognized key", 2)
+	end
 end
+
 
 PocketMeroe.ProfileGet = function (id, var)
 	if not PocketMeroeDB then
@@ -266,7 +270,7 @@ PocketMeroe.ProfileClear = function (id, var) -- right now it just nukes your pr
 
 
     -- Reset markers custom to my defaults
-    PocketMeroe.db.profile.markersCustom = default_config
+    PocketMeroe.db.profile.markersCustom = PocketMeroeData
 
     if not PocketMeroe.db.profile.markersCustom[id] then
 		print("PocketMeroe.lua: Database error!")
