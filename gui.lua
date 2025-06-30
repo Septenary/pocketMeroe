@@ -11,68 +11,48 @@ local options_slider_template = DF:GetTemplate("slider", "OPTIONS_SLIDER_TEMPLAT
 local options_button_template = DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE")
 local options_button_template_selected = DF.table.copy({}, DF:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
 
-local profileCallback = function()
-	-- executes whenever profile settings are changed
-	-- ???
-end
-
-local SetModifier = function(_, var, value, key)
-	if Config[var] then
-		Config[var].none = false
-		Config[var].alt = false
-		Config[var].ctrl = false
-		Config[var].shift = false
-		Config[var][key] = value
-	end
-end
-
-local BuildModifierOptions = function(var)
-	local modifiers = { "none", "alt", "ctrl", "shift" }
-	local result = {}
-
-	for _, modifier in ipairs(modifiers) do
-		table.insert(result, {
-			label = modifier:gsub("^%l", string.upper), -- first letter
-			value = modifier,
-			onclick = function()
-				SetModifier(nil, var, true, modifier)
-			end,
-		})
-	end
-
-	return result
-end
-
-
-local OptionsOnClick = function(_, _, option, value, value2, mouseButton)
-	if option == "use_mouseover" then
-		Config.use_mouseover = not Config.use_mouseover
-		return
-	end
-	if option == "require_leader" then
-		Config.require_leader = not Config.require_leader
-		return
-	end
-	for i, mark in pairs(Config.raidMarkers) do
-		if option == i then
-			--print(option, value)
-			mark[value] = not mark[value]
-			return
+local function removeElementAtIndex(t, i)
+	local newTable = {}
+	for index, value in ipairs(t) do
+		if index ~= i then
+			table.insert(newTable, value)
 		end
 	end
+	return newTable
 end
 
-local SetSetting = function(...)
-	OptionsOnClick(nil, nil, ...)
+local function insertElementAtIndex(t, element, index)
+	local newTable = {}
+	for i = 1, index - 1 do
+		table.insert(newTable, t[i])
+	end
+	table.insert(newTable, element)
+	for i = index, #t do
+		table.insert(newTable, t[i])
+	end
+	return newTable
 end
 
+local function GetCursorPos(frame)
+	local x_f, y_f = GetCursorPosition()
+	local s = frame:GetEffectiveScale()
+	x_f, y_f = x_f / s, y_f / s
+	local x, y = frame:GetLeft(), frame:GetTop()
+	x = x_f - x
+	y = (y_f - y) * (-1)
+	return x, y
+end
+
+local function profileCallback()
+	-- executes whenever profile settings are changed
+end
 
 local buildOptionsFrameTabs = function(parent, tabs)
 	local tabList = {
 		{ name = ".general",   text = "General" },
 		{ name = ".automarks", text = "Automarks" },
 	}
-	local optionsTable = {
+	local options = {
 		y_offset = 0,
 		button_width = 100,
 		button_height = 23,
@@ -103,7 +83,7 @@ local buildOptionsFrameTabs = function(parent, tabs)
 		end,
 	}
 
-	local tabContainer = DF:CreateTabContainer(parent, "pocketMeroe", "$parent.tc", tabList, optionsTable, hookList)
+	local tabContainer = DF:CreateTabContainer(parent, "pocketMeroe", "$parent.tc", tabList, options, hookList)
 	tabContainer:SetPoint("center", parent, "center", 0, 0)
 	tabContainer:SetSize(parent:GetSize())
 	tabContainer:Show()
@@ -148,7 +128,57 @@ local buildStatusAuthorBar = function(parent)
 	return statusBar, authorInfo
 end
 
-local buildTab1Options = function(parentTab, tabFrameHeight)
+local buildGeneralTab = function(parentTab, tabFrameHeight)
+	local function SetModifier(_, var, value, key)
+		if Config[var] then
+			Config[var].none = false
+			Config[var].alt = false
+			Config[var].ctrl = false
+			Config[var].shift = false
+			Config[var][key] = value
+		end
+	end
+
+	local function BuildModifierOptions(var)
+		local modifiers = { "none", "alt", "ctrl", "shift" }
+		local result = {}
+	
+		for _, modifier in ipairs(modifiers) do
+			table.insert(result, {
+				label = modifier:gsub("^%l", string.upper), -- first letter
+				value = modifier,
+				onclick = function()
+					SetModifier(nil, var, true, modifier)
+				end,
+			})
+		end
+	
+		return result
+	end
+
+	local function OptionsOnClick(_, _, option, value, value2, mouseButton)
+		if option == "use_mouseover" then
+			Config.use_mouseover = not Config.use_mouseover
+			return
+		end
+		if option == "require_leader" then
+			Config.require_leader = not Config.require_leader
+			return
+		end
+		for i, mark in pairs(Config.raidMarkers) do
+			if option == i then
+				--print(option, value)
+				mark[value] = not mark[value]
+				return
+			end
+		end
+	end
+	
+	local SetSetting = function(...)
+		OptionsOnClick(nil, nil, ...)
+	end
+
+
 	local generalOptionsTable = {
 		always_boxfirst = true,
 		{
@@ -205,7 +235,7 @@ local buildTab1Options = function(parentTab, tabFrameHeight)
 		profileCallback)
 end
 
-local buildTab2Options = function(parentTab, tabFrameHeight)
+local buildAutomarksTab = function(parentTab, tabFrameHeight)
 	local raidDropdown = function(var, frame)
 		local raids = {
 			{ label = "All",                 value = "none" },
@@ -224,6 +254,7 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 				label = raid.label,
 				value = raid.value,
 				onclick = function()
+					--gui.automarks.scroll:UpdateList
 					parentTab.scroll:UpdateList(nil, var, true, raid.value)
 				end,
 			})
@@ -244,7 +275,7 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 		},
 
 	}
-
+	-- gui.automarks.scroll:UpdateList
 	parentTab.scroll:UpdateList()
 	
 	local dropdown = DF:BuildMenu(gui.automarks.scroll, automarksOptionsTable, 10, 30, tabFrameHeight, false, options_text_template,
@@ -253,17 +284,9 @@ local buildTab2Options = function(parentTab, tabFrameHeight)
 	
 end
 
-local function GetCursorPos(frame)
-	local x_f, y_f = GetCursorPosition()
-	local s = frame:GetEffectiveScale()
-	x_f, y_f = x_f / s, y_f / s
-	local x, y = frame:GetLeft(), frame:GetTop()
-	x = x_f - x
-	y = (y_f - y) * (-1)
-	return x, y
-end
 
-local function Tab2LineUpdate(self)
+
+local function charmBarUpdate(self)
 	local parentID = self:GetParent()._id
 	if self.id ~= parentID then
 		self.id = parentID
@@ -292,7 +315,7 @@ local function Tab2LineUpdate(self)
 	end
 end
 
-local function Tab2MarksOnUpdate(self)
+local function charmBarPickedUpdate(self)
 	if not IsMouseButtonDown("LeftButton") then
 		self:SetScript("OnUpdate", nil)
 		self.picked = nil
@@ -317,28 +340,6 @@ local function Tab2MarksOnUpdate(self)
 	end
 	--local newState = self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(1,currCursor-1) .. self.saved_state:sub(self.picked,self.picked) .. self.saved_state:gsub(self.saved_state:sub(self.picked,self.picked),""):sub(currCursor,-1)
 	-- prolly did this wrong..
-	local function removeElementAtIndex(t, i)
-		local newTable = {}
-		for index, value in ipairs(t) do
-			if index ~= i then
-				table.insert(newTable, value)
-			end
-		end
-		return newTable
-	end
-
-	local function insertElementAtIndex(t, element, index)
-		local newTable = {}
-		for i = 1, index - 1 do
-			table.insert(newTable, t[i])
-		end
-		table.insert(newTable, element)
-		for i = index, #t do
-			table.insert(newTable, t[i])
-		end
-		return newTable
-	end
-
 	local tempState = removeElementAtIndex(self.saved_state, self.picked)
 	local newState = insertElementAtIndex(tempState, self.saved_state[self.picked], currCursor)
 
@@ -350,7 +351,7 @@ local function Tab2MarksOnUpdate(self)
 	end
 end
 
-local function Tab2MarksOnMouseDown(self, button)
+local function charmsBarOnMouseDown(self, button)
 	self.id = self:GetParent().id
 	--print("Mousedown: ", self.id)
 	self.state = PocketMeroe.ProfileGet(self.id, "customMarks")
@@ -393,7 +394,7 @@ local function Tab2MarksOnMouseDown(self, button)
 		end
 		if self.picked then
 			self.picked_mark = self.saved_state[self.picked]
-			self:SetScript("OnUpdate", Tab2MarksOnUpdate)
+			self:SetScript("OnUpdate", charmBarPickedUpdate)
 			self:GetParent():Update()
 		end
 	elseif button == "RightButton" then
@@ -411,16 +412,6 @@ local function Tab2MarksOnMouseDown(self, button)
 				local x, y = GetCursorPos(self.list[i])
 				if x >= 0 and x <= 19 then
 					--local newState = self.state:sub(1,i-1)..self.state:sub(i+1,-1)
-					local function removeElementAtIndex(t, i)
-						local newState = {}
-						for index, value in ipairs(t) do
-							if index ~= i then
-								table.insert(newState, value)
-							end
-						end
-						return newState
-					end
-
 					local newState = removeElementAtIndex(self.state, i)
 					-- Print the new state to verify
 					-- for _, v in ipairs(newState) do
@@ -438,7 +429,7 @@ local function Tab2MarksOnMouseDown(self, button)
 	end
 end
 
-local BuildTab2MarksBar = function(parent)
+local function buildCharmsBar(parent)
 	local line = CreateFrame("Frame", nil, parent)
 	do
 		line.id = parent._id
@@ -470,14 +461,14 @@ local BuildTab2MarksBar = function(parent)
 		marks.list.refresh:SetTexture([[Interface\AddOns\pocketMeroe\refresh]])
 		marks.list.refresh:SetVertexColor(1, 1, 1, 0.7)
 
-		marks:SetScript("OnMouseDown", Tab2MarksOnMouseDown)
+		marks:SetScript("OnMouseDown", charmsBarOnMouseDown)
 
 		-- default marks
 		marks.state = { 8, 7, 6, 5, 4, 3, 2, 1 }
 
 		line.marks = marks
 
-		line.Update = Tab2LineUpdate
+		line.Update = charmBarUpdate
 		line:Update()
 	end
 	return line
@@ -485,23 +476,12 @@ local BuildTab2MarksBar = function(parent)
 	--marks:SetScript("OnLeave",Tab2MarksListOnLeave)
 end
 
-local function ShowMarkScroll(parentTab)
+local function buildAutomarksScrollbox(parentTab)
 	if parentTab.scroll then
 		parentTab.scroll:Show()
 		return
 	end
 	local markLines = {}
-
-	--[[ 		local backdrop_color = {.8, .8, .8, 0.2}
-	local backdrop_color_on_enter = {.8, .8, .8, 0.4}
-
-	local line_onenter = function (self)
-		self:SetBackdropColor (unpack (backdrop_color_on_enter))
-	end
-
-	local line_onleave = function (self)
-		self:SetBackdropColor (unpack (backdrop_color))
-	end ]]
 
 	---(self:df_scrollbox, data:table, offset:number, numlines:number)
 	local refreshGrid = function(frame, data)
@@ -529,10 +509,6 @@ local function ShowMarkScroll(parentTab)
 		frame:Show()
 	end
 
-	-- TODO:
-	-- raidIcons selector -> clicky -> {8,7,6,5,4,3,2,1}
-	-- data columns & refresh with if (npcData[id].instance[1] == value [+checks]) -- SEARCH? searchBox df_searchbox
-
 	local options = {
 		width = 510,
 		height = 190,
@@ -544,7 +520,7 @@ local function ShowMarkScroll(parentTab)
 		no_backdrop = false,
 	}
 	
-	function PocketMeroe.gui.getData()
+	function gui:getData()
 		local data = {}
 		if not PocketMeroeDB then
 			print("PocketMeroe.marks.InitTooltips: Database not loaded! Stopping!")
@@ -678,7 +654,7 @@ local function ShowMarkScroll(parentTab)
 		end
 	end
 	
-	PocketMeroe.gui.data = PocketMeroe.gui.getData()
+	PocketMeroe.gui.data = gui:getData()
 	parentTab.scroll = DF:CreateGridScrollBox(parentTab, "$parent.content", refreshGrid, PocketMeroe.gui.data,
 		createColumnFrame, options)
 	DF:ReskinSlider(parentTab.scroll)
@@ -688,7 +664,7 @@ local function ShowMarkScroll(parentTab)
 	for i, line in ipairs(parentTab.scroll:GetFrames()) do
 		line._id = line.optionFrames[2].text:GetText()
 		--print("line_id", line._id)
-		markLines[i] = BuildTab2MarksBar(line)
+		markLines[i] = buildCharmsBar(line)
 	end
 
 	function gui.automarks.scroll:UpdateList(_, _, option, value, value2, mouseButton)
@@ -789,12 +765,12 @@ gui.ShowMenu = function()
 	gui.automarks = automarks
 
 	---  [meroe.general]  ---
-	buildTab1Options(general, tabFrameHeight)
+	buildGeneralTab(general, tabFrameHeight)
 
 
 	--- [meroe.automarks] ---
-	ShowMarkScroll(automarks)
-	buildTab2Options(automarks, tabFrameHeight)
+	buildAutomarksScrollbox(automarks)
+	buildAutomarksTab(automarks, tabFrameHeight)
 
 
 	---
@@ -816,6 +792,8 @@ end
 PocketMeroe.gui = gui
 
 --[[
+
+	    TODO: Searchbox for GridScrollBox searchBox df_searchbox
 		TODO: Add "BossMods" tab to control boss encounter features.
 		TODO: Implement boss encounter functionalities.
 		TODO: Create frames for these and integrate with event handlers.
