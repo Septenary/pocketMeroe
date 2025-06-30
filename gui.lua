@@ -51,6 +51,7 @@ local buildOptionsFrameTabs = function(parent, tabs)
 	local tabList = {
 		{ name = ".general",   text = "General" },
 		{ name = ".automarks", text = "Automarks" },
+		{ name = ".raids",    text = "Raids" },
 	}
 	local options = {
 		y_offset = 0,
@@ -262,7 +263,7 @@ local buildAutomarksTab = function(parentTab, tabFrameHeight)
 		return result
 	end
 
-	local automarksOptionsTable = {
+	local options = {
 		always_boxfirst = true,
 		{
 			type = "select",
@@ -281,7 +282,7 @@ local buildAutomarksTab = function(parentTab, tabFrameHeight)
 	-- gui.automarks.scroll:UpdateList
 	parentTab.scroll:UpdateList()
 	
-	local dropdown = DF:BuildMenu(gui.automarks.scroll, automarksOptionsTable, 10, 30, tabFrameHeight, false, options_text_template,
+	DF:BuildMenu(gui.automarks.scroll, options, 10, 30, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
 	
@@ -294,61 +295,44 @@ local buildAutomarksTab = function(parentTab, tabFrameHeight)
 end
 
 local buildRaidsTab = function(parentTab, tabFrameHeight)
-	local raidDropdown = function(var, frame)
-		local raids = {
-			{ label = "All",                 value = "none" },
-			{ label = "Zul'Gurub",           value = "ZG" },
-			{ label = "Ruins of Ahn'Qiraj",  value = "AQ20" },
-			{ label = "Molten Core",         value = "MC" },
-			{ label = "Blackwing Lair",      value = "BWL" },
-			{ label = "Temple of Ahn'Qiraj", value = "AQ40" },
-			{ label = "Naxxramas",           value = "NAXX" },
-		}
 
-		local result = {}
-
-		for _, raid in ipairs(raids) do
-			table.insert(result, {
-				label = raid.label,
-				value = raid.value,
-				onclick = function()
-					--gui.automarks.scroll:UpdateList
-					parentTab.scroll:UpdateList(nil, var, true, raid.value)
-				end,
-			})
-		end
-		return result
-	end
-
-	local automarksOptionsTable = {
-		always_boxfirst = true,
+    local options = {
+        always_boxfirst = true,
 		{
-			type = "select",
-			get = function()
-				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
-			end,
-			values = function() return raidDropdown(Config.var, parentTab.scroll) end,
-			name = "Raid:",
-			--desc = "",
+			type = "label",
+			get = function() return "Functionality" end,
+			text_template = DF:GetTemplate("font", "ORANGE_FONT_TEMPLATE")
 		},
+        {
+            type = "toggle",
+            get = function()
+                return Config.enable_raid_tracking
+            end,
+            set = function(_, _, value)
+                Config.enable_raid_tracking = value
+                print("Raid Tracking Enabled:", value)
+            end,
+            name = "Enable Raid Tracking",
+            desc = "Toggle raid tracking functionality.",
+        },
+        {
+            type = "toggle",
+            get = function()
+                return Config.auto_assign_roles
+            end,
+            set = function(_, _, value)
+                Config.auto_assign_roles = value
+                print("Auto Assign Roles:", value)
+            end,
+            name = "Auto Assign Roles",
+            desc = "Automatically assign roles to raid members.",
+        },
+    }
 
-	}
 
-
-
-	-- gui.automarks.scroll:UpdateList
-	parentTab.scroll:UpdateList()
-	
-	local dropdown = DF:BuildMenu(gui.automarks.scroll, automarksOptionsTable, 10, 30, tabFrameHeight, false, options_text_template,
+	DF:BuildMenu(parentTab, options, 10, -100, tabFrameHeight, false, options_text_template,
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
-	
-	local searchBox = DF:CreateSearchBox(parentTab, parentTab.scroll.UpdateList)
-	searchBox:SetPoint("TOPLEFT", parentTab, "TOPLEFT", 220, -76)
-	searchBox:SetScript("OnTextChanged", function(self)
-		local searchText = self:GetText():lower()
-		parentTab.scroll:UpdateList(nil, nil, nil, nil, searchText)
-	end)
 end
 
 
@@ -827,10 +811,12 @@ gui.ShowMenu = function()
 
 	local general = tabContainer.AllFrames[1]
 	local automarks = tabContainer.AllFrames[2]
+	local raids = tabContainer.AllFrames[3]
 	local tabFrameHeight = general:GetHeight()
 
 	gui.general = general
 	gui.automarks = automarks
+	gui.raids = raids
 
 	---  [meroe.general]  ---
 	buildGeneralTab(general, tabFrameHeight)
@@ -840,6 +826,8 @@ gui.ShowMenu = function()
 	buildAutomarksScrollbox(automarks)
 	buildAutomarksTab(automarks, tabFrameHeight)
 
+	--- [meroe.raids] ---
+	buildRaidsTab(raids, tabFrameHeight)
 
 	---
 	meroe:Hide();

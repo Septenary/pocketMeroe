@@ -1,8 +1,5 @@
 ------------------------------------------------------------------------------------------------------------------------
---[[
-License: GPLv3
-main was made by meroe for <Serenity> - Mankrik.
-
+--[[ Thank you:
 Details!: Framework library (LGPLv3)
 https://www.curseforge.com/wow/addons/libdframework Terciob,
 
@@ -277,13 +274,6 @@ PocketMeroe.ProfileClear = function (id, var) -- right now it just nukes your pr
         PocketMeroe.db.profile.markersCustom[id] = { {}, 0, "", "", "" } -- reasonable defaults
     end
 
-end
-
-function main.OnInit()
-end
-
-function main:RefreshConfig()
-	--
 end
 
 mainFrame:RegisterEvent("ADDON_LOADED");
