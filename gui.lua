@@ -275,6 +275,9 @@ local buildAutomarksTab = function(parentTab, tabFrameHeight)
 		},
 
 	}
+
+
+
 	-- gui.automarks.scroll:UpdateList
 	parentTab.scroll:UpdateList()
 	
@@ -282,7 +285,72 @@ local buildAutomarksTab = function(parentTab, tabFrameHeight)
 		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
 		profileCallback)
 	
+	local searchBox = DF:CreateSearchBox(parentTab, parentTab.scroll.UpdateList)
+	searchBox:SetPoint("TOPLEFT", parentTab, "TOPLEFT", 220, -76)
+	searchBox:SetScript("OnTextChanged", function(self)
+		local searchText = self:GetText():lower()
+		parentTab.scroll:UpdateList(nil, nil, nil, nil, searchText)
+	end)
 end
+
+local buildRaidsTab = function(parentTab, tabFrameHeight)
+	local raidDropdown = function(var, frame)
+		local raids = {
+			{ label = "All",                 value = "none" },
+			{ label = "Zul'Gurub",           value = "ZG" },
+			{ label = "Ruins of Ahn'Qiraj",  value = "AQ20" },
+			{ label = "Molten Core",         value = "MC" },
+			{ label = "Blackwing Lair",      value = "BWL" },
+			{ label = "Temple of Ahn'Qiraj", value = "AQ40" },
+			{ label = "Naxxramas",           value = "NAXX" },
+		}
+
+		local result = {}
+
+		for _, raid in ipairs(raids) do
+			table.insert(result, {
+				label = raid.label,
+				value = raid.value,
+				onclick = function()
+					--gui.automarks.scroll:UpdateList
+					parentTab.scroll:UpdateList(nil, var, true, raid.value)
+				end,
+			})
+		end
+		return result
+	end
+
+	local automarksOptionsTable = {
+		always_boxfirst = true,
+		{
+			type = "select",
+			get = function()
+				return "none" or "ZG" or "AQ20" or "MC" or "BWL"
+			end,
+			values = function() return raidDropdown(Config.var, parentTab.scroll) end,
+			name = "Raid:",
+			--desc = "",
+		},
+
+	}
+
+
+
+	-- gui.automarks.scroll:UpdateList
+	parentTab.scroll:UpdateList()
+	
+	local dropdown = DF:BuildMenu(gui.automarks.scroll, automarksOptionsTable, 10, 30, tabFrameHeight, false, options_text_template,
+		options_dropdown_template, options_switch_template, true, options_slider_template, options_button_template,
+		profileCallback)
+	
+	local searchBox = DF:CreateSearchBox(parentTab, parentTab.scroll.UpdateList)
+	searchBox:SetPoint("TOPLEFT", parentTab, "TOPLEFT", 220, -76)
+	searchBox:SetScript("OnTextChanged", function(self)
+		local searchText = self:GetText():lower()
+		parentTab.scroll:UpdateList(nil, nil, nil, nil, searchText)
+	end)
+end
+
 
 
 
@@ -679,7 +747,7 @@ local function buildAutomarksScrollbox(parentTab)
 			local customMarks, priority, zone, monsterType, name = unpack(entry)
 	
 			-- Filter by selected raid (zone)
-			if (zone == value or value == "none" or not value) then
+			if (zone == value or value == "none" or not value) and (not value2 or name:lower():find(value2:lower())) then
 				table.insert(filteredData, { text = tostring(name) })
 				table.insert(filteredData, { text = tostring(id) })
 				table.insert(filteredData, { text = tostring(monsterType) })
